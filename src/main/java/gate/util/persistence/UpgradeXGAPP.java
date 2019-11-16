@@ -11,7 +11,7 @@ import gate.resources.img.svg.ApplicationIcon;
 import gate.swing.XJFileChooser;
 import gate.util.ExtensionFileFilter;
 import gate.util.maven.SimpleModelResolver;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;

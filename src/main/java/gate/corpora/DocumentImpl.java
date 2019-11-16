@@ -67,44 +67,45 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents the commonalities between all sorts of documents.
- * 
+ *
  * <H2>Editing</H2>
- * 
+ *
  * <P>
  * The DocumentImpl class implements the Document interface. The
  * DocumentContentImpl class models the textual or audio-visual materials which
  * are the source and content of Documents. The AnnotationSetImpl class supplies
  * annotations on Documents.
- * 
+ *
  * <P>
  * Abbreviations:
- * 
+ *
  * <UL>
  * <LI> DC = DocumentContent
  * <LI> D = Document
  * <LI> AS = AnnotationSet
  * </UL>
- * 
+ *
  * <P>
  * We add an edit method to each of these classes; for DC and AS the methods are
  * package private; D has the public method.
- * 
+ *
  * <PRE>
- * 
+ *
  * void edit(Long start, Long end, DocumentContent replacement) throws
  * InvalidOffsetException;
- * 
+ *
  * </PRE>
- * 
+ *
  * <P>
  * D receives edit requests and forwards them to DC and AS. On DC, this method
  * makes a change to the content - e.g. replacing a String range from start to
  * end with replacement. (Deletions are catered for by having replacement =
  * null.) D then calls AS.edit on each of its annotation sets.
- * 
+ *
  * <P>
  * On AS, edit calls replacement.size() (i.e. DC.size()) to figure out how long
  * the replacement is (0 for null). It then considers annotations that terminate
@@ -118,65 +119,65 @@ import java.util.Vector;
  * <LI> the nodes that are after the end of the affected area will have the
  * offset changed according to the formula below.
  * </UL>
- * 
+ *
  * <P>
  * A note re. AS and annotations: annotations no longer have offsets as in the
  * old model, they now have nodes, and nodes have offsets.
- * 
+ *
  * <P>
  * To implement AS.edit, we have several indices:
- * 
+ *
  * <PRE>
- * 
+ *
  * HashMap annotsByStartNode, annotsByEndNode;
- * 
+ *
  * </PRE>
- * 
+ *
  * which map node ids to annotations;
- * 
+ *
  * <PRE>
- * 
+ *
  * RBTreeMap nodesByOffset;
- * 
+ *
  * </PRE>
- * 
+ *
  * which maps offset to Nodes.
- * 
+ *
  * <P>
  * When we get an edit request, we traverse that part of the nodesByOffset tree
  * representing the altered or deleted range of the DC. For each node found, we
  * delete any annotations that terminate on the node, and then delete the node
  * itself. We then traverse the rest of the tree, changing the offset on all
  * remaining nodes by:
- * 
+ *
  * <PRE>
- * 
+ *
  * newOffset = oldOffset - ( (end - start) - // size of mod ( (replacement ==
  * null) ? 0 : replacement.size() ) // size of repl );
- * 
+ *
  * </PRE>
- * 
+ *
  * Note that we use the same convention as e.g. java.lang.String: start offsets
  * are inclusive; end offsets are exclusive. I.e. for string "abcd" range 1-3 =
  * "bc". Examples, for a node with offset 4:
- * 
+ *
  * <PRE>
- * 
+ *
  * edit(1, 3, "BC"); newOffset = 4 - ( (3 - 1) - 2 ) = 4
- * 
+ *
  * edit(1, 3, null); newOffset = 4 - ( (3 - 1) - 0 ) = 2
- * 
+ *
  * edit(1, 3, "BBCC"); newOffset = 4 - ( (3 - 1) - 4 ) = 6
- * 
+ *
  * </PRE>
  */
 @CreoleResource(name = "GATE Document", interfaceName = "gate.Document",
-    comment = "GATE transient document.", icon = "document",
-    helpURL = "http://gate.ac.uk/userguide/sec:developer:documents")
+        comment = "GATE transient document.", icon = "document",
+        helpURL = "http://gate.ac.uk/userguide/sec:developer:documents")
 public class DocumentImpl extends AbstractLanguageResource implements
-                                                          TextualDocument,
-                                                          CreoleListener,
-                                                          DatastoreListener {
+        TextualDocument,
+        CreoleListener,
+        DatastoreListener {
   /** Debug flag */
   private static final boolean DEBUG = false;
 
@@ -200,7 +201,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    */
   private Annotation crossedOverAnnotation = null;
 
-  
+
   /** Flag to determine whether to serialize namespace information held as
    *  annotation features into namespace prefix and URI in the XML
    */
@@ -210,7 +211,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   /** Feature name used for namespace prefix in namespaced elements */
   private String namespacePrefixFeature = null;
 
-  
+
   /** Default construction. Content left empty. */
   public DocumentImpl() {
     content = new DocumentContentImpl();
@@ -273,7 +274,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
         MimeType theType = DocumentFormat.getMimeTypeForString(mimeType);
         if(theType == null) {
           throw new ResourceInstantiationException("MIME type \""
-              + this.mimeType + " has no registered DocumentFormat");
+                  + this.mimeType + " has no registered DocumentFormat");
         }
 
         docFormat = DocumentFormat.getDocumentFormat(this, theType);
@@ -338,7 +339,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * Correct repositioning information for substitution of "\r\n" with "\n"
    */
   private void correctRepositioningForCRLFInXML(String content,
-          RepositioningInfo info) {
+                                                RepositioningInfo info) {
     int index = -1;
     do {
       index = content.indexOf("\r\n", index + 1);
@@ -350,7 +351,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
 
   /**
    * Collect information for substitution of "&xxx;" with "y"
-   * 
+   *
    * It couldn't be collected a position information about some unicode and
    * &-coded symbols during parsing. The parser "hide" the information about the
    * position of such kind of parsed text. So, there is minimal chance to have
@@ -361,7 +362,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * correction for CRLF substitution is performed.
    */
   private void collectInformationForAmpCodding(String content,
-          RepositioningInfo info, boolean shouldCorrectCR) {
+                                               RepositioningInfo info, boolean shouldCorrectCR) {
     if(content == null || info == null) return;
     int ampIndex = -1;
     int semiIndex;
@@ -512,16 +513,16 @@ public class DocumentImpl extends AbstractLanguageResource implements
   public String getMimeType() {
     return mimeType;
   }
-  
+
   /** Set the specific MIME type for this document */
   @Optional
   @CreoleParameter(
-      comment = "MIME type of the document.  If unspecified it will be "
-            + "inferred from the file extension, etc.")
+          comment = "MIME type of the document.  If unspecified it will be "
+                  + "inferred from the file extension, etc.")
   public void setMimeType(String newMimeType) {
     this.mimeType = newMimeType;
   }
-  
+
   /** Documents are identified by URLs */
   @Override
   public URL getSourceUrl() {
@@ -531,7 +532,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   /** Set method for the document's URL */
   @Override
   @CreoleParameter(disjunction = "source", priority = 1, comment = "Source URL",
-      suffixes = "txt;text;xml;xhtm;xhtml;html;htm;sgml;sgm;mail;email;eml;rtf;pdf;doc;ppt;pptx;docx;xls;xlsx;ods;odt;odp;iob;conll")
+          suffixes = "txt;text;xml;xhtm;xhtml;html;htm;sgml;sgm;mail;email;eml;rtf;pdf;doc;ppt;pptx;docx;xls;xlsx;ods;odt;odp;iob;conll")
   public void setSourceUrl(URL sourceUrl) {
     this.sourceUrl = sourceUrl;
   } // setSourceUrl
@@ -555,14 +556,14 @@ public class DocumentImpl extends AbstractLanguageResource implements
    */
   @Override
   @CreoleParameter(comment = "Should the document preserve the original content?",
-      defaultValue = "false")
+          defaultValue = "false")
   public void setPreserveOriginalContent(Boolean b) {
     preserveOriginalContent = b;
   } // setPreserveOriginalContent
 
   /**
    * Get the preserving of content status of the Document.
-   * 
+   *
    * @return whether the Document should preserve it's original content.
    */
   @Override
@@ -579,7 +580,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    */
   @Override
   @CreoleParameter(defaultValue = "false",
-      comment = "Should the document collect repositioning information")
+          comment = "Should the document collect repositioning information")
   public void setCollectRepositioningInfo(Boolean b) {
     collectRepositioningInfo = b;
   } // setCollectRepositioningInfo
@@ -590,7 +591,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * Preserving of repositioning information give the possibilities for
    * converting of coordinates between the original document content and
    * extracted from the document text.
-   * 
+   *
    * @return whether the Document should collect and preserve information.
    */
   @Override
@@ -616,7 +617,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   @Override
   @Optional
   @CreoleParameter(
-      comment = "Start offset for documents based on ranges")
+          comment = "Start offset for documents based on ranges")
   public void setSourceUrlStartOffset(Long sourceUrlStartOffset) {
     this.sourceUrlStartOffset = sourceUrlStartOffset;
   } // setSourceUrlStartOffset
@@ -639,7 +640,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   @Override
   @Optional
   @CreoleParameter(
-      comment = "End offset for documents based on ranges")
+          comment = "End offset for documents based on ranges")
   public void setSourceUrlEndOffset(Long sourceUrlEndOffset) {
     this.sourceUrlEndOffset = sourceUrlEndOffset;
   } // setSourceUrlStartOffset
@@ -719,13 +720,13 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * DocumentFormat object at Document initialisation time; the DocumentFormat
    * object will unpack the markup in the Document and add it as annotations.
    * Documents are <B>not</B> markup-aware by default.
-   * 
+   *
    * @param newMarkupAware
    *          markup awareness status.
    */
   @Override
   @CreoleParameter(defaultValue = "true",
-      comment = "Should the document read the original markup?")
+          comment = "Should the document read the original markup?")
   public void setMarkupAware(Boolean newMarkupAware) {
     this.markupAware = newMarkupAware;
   }
@@ -733,7 +734,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   /**
    * Get the markup awareness status of the Document. <B>Documents are
    * markup-aware by default.</B>
-   * 
+   *
    * @return whether the Document is markup aware.
    */
   @Override
@@ -760,7 +761,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * specified in the aSourceAnnotationSet. <b>Warning:</b> Annotations from
    * the aSourceAnnotationSet will be lost if they will cause a crosed over
    * situation.
-   * 
+   *
    * @param aSourceAnnotationSet
    *          is an annotation set containing all the annotations that will be
    *          combined with the original marup set. If the param is
@@ -815,8 +816,8 @@ public class DocumentImpl extends AbstractLanguageResource implements
                     + "crossed over condition: \n"
                     + "1. ["
                     + getContent().getContent(
-                            crossedOverAnnotation.getStartNode().getOffset(),
-                            crossedOverAnnotation.getEndNode().getOffset())
+                    crossedOverAnnotation.getStartNode().getOffset(),
+                    crossedOverAnnotation.getEndNode().getOffset())
                     + " ("
                     + crossedOverAnnotation.getType()
                     + ": "
@@ -826,8 +827,8 @@ public class DocumentImpl extends AbstractLanguageResource implements
                     + ")]\n"
                     + "2. ["
                     + getContent().getContent(
-                            currentAnnot.getStartNode().getOffset(),
-                            currentAnnot.getEndNode().getOffset()) + " ("
+                    currentAnnot.getStartNode().getOffset(),
+                    currentAnnot.getEndNode().getOffset()) + " ("
                     + currentAnnot.getType() + ": "
                     + currentAnnot.getStartNode().getOffset() + ";"
                     + currentAnnot.getEndNode().getOffset()
@@ -846,7 +847,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
       sListener.statusChanged("Dumping annotations as XML");
     StringBuffer xmlDoc = new StringBuffer(
             DocumentXmlUtils.DOC_SIZE_MULTIPLICATION_FACTOR
-            * (this.getContent().size().intValue()));
+                    * (this.getContent().size().intValue()));
     // Add xml header if original format was xml
     String mimeType = (String)getFeatures().get("MimeType");
     boolean wasXML = mimeType != null && mimeType.equalsIgnoreCase("text/xml");
@@ -879,7 +880,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * This method verifies if aSourceAnnotation can ve inserted safety into the
    * aTargetAnnotSet. Safety means that it doesn't violate the crossed over
    * contition with any annotation from the aTargetAnnotSet.
-   * 
+   *
    * @param aTargetAnnotSet
    *          the annotation set to include the aSourceAnnotation
    * @param aSourceAnnotation
@@ -887,7 +888,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * @return true if the annotation inserts safety, or false otherwise.
    */
   private boolean insertsSafety(AnnotationSet aTargetAnnotSet,
-          Annotation aSourceAnnotation) {
+                                Annotation aSourceAnnotation) {
     if(aTargetAnnotSet == null || aSourceAnnotation == null) {
       this.crossedOverAnnotation = null;
       return false;
@@ -932,7 +933,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   }// insertsSafety()
 
   private boolean insertsSafety(List<Annotation> aTargetAnnotList,
-          Annotation aSourceAnnotation) {
+                                Annotation aSourceAnnotation) {
     if(aTargetAnnotList == null || aSourceAnnotation == null) {
       this.crossedOverAnnotation = null;
       return false;
@@ -988,7 +989,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   /**
    * This method saves all the annotations from aDumpAnnotSet and combines them
    * with the document content.
-   * 
+   *
    * @param aDumpAnnotSet
    *          is a GATE annotation set prepared to be used on the raw text from
    *          document content. If aDumpAnnotSet is <b>null<b> then an empty
@@ -1001,13 +1002,13 @@ public class DocumentImpl extends AbstractLanguageResource implements
    */
   @SuppressWarnings("unused")
   private String saveAnnotationSetAsXml(AnnotationSet aDumpAnnotSet,
-          boolean includeFeatures) {
+                                        boolean includeFeatures) {
     String content = null;
     if(this.getContent() == null)
       content = "";
     else content = this.getContent().toString();
     StringBuffer docContStrBuff =
-      DocumentXmlUtils.filterNonXmlChars(new StringBuffer(content));
+            DocumentXmlUtils.filterNonXmlChars(new StringBuffer(content));
     if(aDumpAnnotSet == null) return docContStrBuff.toString();
     TreeMap<Long, Character> offsets2CharsMap = new TreeMap<Long, Character>();
     if(this.getContent().size().longValue() != 0) {
@@ -1056,7 +1057,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
             // Here, the annotation a Starts and Ends at the offset
             if(null != a.getFeatures().get("isEmptyAndSpan")
                     && "true".equals(a.getFeatures().get(
-                            "isEmptyAndSpan"))) {
+                    "isEmptyAndSpan"))) {
               // Assert: annotation a with start == end and isEmptyAndSpan
               tmpBuff.append(writeStartTag(a, includeFeatures));
               stack.push(a);
@@ -1140,13 +1141,13 @@ public class DocumentImpl extends AbstractLanguageResource implements
   }// saveAnnotationSetAsXml()
 
   private String saveAnnotationSetAsXml(List<Annotation> aDumpAnnotList,
-          boolean includeFeatures) {
+                                        boolean includeFeatures) {
     String content;
     if(this.getContent() == null)
       content = "";
     else content = this.getContent().toString();
     StringBuffer docContStrBuff =
-      DocumentXmlUtils.filterNonXmlChars(new StringBuffer(content));
+            DocumentXmlUtils.filterNonXmlChars(new StringBuffer(content));
     if(aDumpAnnotList == null) return docContStrBuff.toString();
     StringBuffer resultStrBuff = new StringBuffer(
             DOC_SIZE_MULTIPLICATION_FACTOR_AS
@@ -1155,7 +1156,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
     Long lastOffset = 0L;
     TreeMap<Long, Character> offsets2CharsMap = new TreeMap<Long, Character>();
     HashMap<Long, List<Annotation>> annotsForOffset =
-      new HashMap<Long, List<Annotation>>(100);
+            new HashMap<Long, List<Annotation>>(100);
     if(this.getContent().size() != 0) {
       // Fill the offsets2CharsMap with all the indices where
       // special chars appear
@@ -1226,7 +1227,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
             // Here, the annotation a Starts and Ends at the offset
             if(null != a.getFeatures().get("isEmptyAndSpan")
                     && "true".equals(a.getFeatures().get(
-                            "isEmptyAndSpan"))) {
+                    "isEmptyAndSpan"))) {
               // Assert: annotation a with start == end and isEmptyAndSpan
               tmpBuff.append(writeStartTag(a, includeFeatures));
               stack.push(a);
@@ -1282,15 +1283,15 @@ public class DocumentImpl extends AbstractLanguageResource implements
       while(!offsetsInRange.isEmpty()) {
         tmpOffset = offsetsInRange.firstKey();
         replacement = DocumentXmlUtils.entitiesMap.get(
-          offsets2CharsMap.get(tmpOffset));
+                offsets2CharsMap.get(tmpOffset));
         partText.append(docContStrBuff.substring(
-          tmpLastOffset.intValue(), tmpOffset.intValue()));
+                tmpLastOffset.intValue(), tmpOffset.intValue()));
         partText.append(replacement);
         tmpLastOffset = tmpOffset + 1;
         offsetsInRange.remove(tmpOffset);
       }
       partText.append(docContStrBuff.substring(
-        tmpLastOffset.intValue(), offset.intValue()));
+              tmpLastOffset.intValue(), offset.intValue()));
       resultStrBuff.append(partText);
       // Insert tmpBuff to the result string
       resultStrBuff.append(tmpBuff.toString());
@@ -1300,7 +1301,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
     // extract text from content and replace spec chars
     StringBuffer partText = new StringBuffer();
     SortedMap<Long, Character> offsetsInRange = offsets2CharsMap.subMap(
-      lastOffset, (long) docContStrBuff.length());
+            lastOffset, (long) docContStrBuff.length());
     Long tmpOffset;
     Long tmpLastOffset = lastOffset;
     String replacement;
@@ -1310,28 +1311,28 @@ public class DocumentImpl extends AbstractLanguageResource implements
     while(!offsetsInRange.isEmpty()) {
       tmpOffset = offsetsInRange.firstKey();
       replacement = DocumentXmlUtils.entitiesMap.get(
-        offsets2CharsMap.get(tmpOffset));
+              offsets2CharsMap.get(tmpOffset));
       partText.append(docContStrBuff.substring(
-        tmpLastOffset.intValue(), tmpOffset.intValue()));
+              tmpLastOffset.intValue(), tmpOffset.intValue()));
       partText.append(replacement);
       tmpLastOffset = tmpOffset + 1;
       offsetsInRange.remove(tmpOffset);
     }
     partText.append(docContStrBuff.substring(
-      tmpLastOffset.intValue(), docContStrBuff.length()));
+            tmpLastOffset.intValue(), docContStrBuff.length()));
     resultStrBuff.append(partText);
     return resultStrBuff.toString();
   }// saveAnnotationSetAsXml()
 
   /*
    * Old method created by Cristian. Create content backward.
-   * 
+   *
    * private String saveAnnotationSetAsXml(List aDumpAnnotList, boolean
    * includeFeatures){ String content = null; if (this.getContent()== null)
    * content = new String(""); else content = this.getContent().toString();
    * StringBuffer docContStrBuff = filterNonXmlChars(new StringBuffer(content));
    * if (aDumpAnnotList == null) return docContStrBuff.toString();
-   * 
+   *
    * TreeMap offsets2CharsMap = new TreeMap(); HashMap annotsForOffset = new
    * HashMap(100); if (this.getContent().size().longValue() != 0){ // Fill the
    * offsets2CharsMap with all the indices where // special chars appear
@@ -1425,14 +1426,14 @@ public class DocumentImpl extends AbstractLanguageResource implements
     result = (features
             .get(GateConstants.ORIGINAL_DOCUMENT_CONTENT_FEATURE_NAME) != null)
             && (features
-                    .get(GateConstants.DOCUMENT_REPOSITIONING_INFO_FEATURE_NAME) != null);
+            .get(GateConstants.DOCUMENT_REPOSITIONING_INFO_FEATURE_NAME) != null);
     return result;
   } // hasOriginalContentFeatures
 
   /**
    * This method saves all the annotations from aDumpAnnotSet and combines them
    * with the original document content, if preserved as feature.
-   * 
+   *
    * @param aSourceAnnotationSet
    *          is a GATE annotation set prepared to be used on the raw text from
    *          document content. If aDumpAnnotSet is <b>null<b> then an empty
@@ -1444,7 +1445,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    *         dump annotation set.
    */
   private String saveAnnotationSetAsXmlInOrig(Set<Annotation> aSourceAnnotationSet,
-          boolean includeFeatures) {
+                                              boolean includeFeatures) {
     StringBuffer docContStrBuff;
     String origContent;
     origContent = (String)features
@@ -1469,7 +1470,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
     // Then take all the annotations from aSourceAnnotationSet and verify if
     // they can be inserted safely into the dumpingSet. Where not possible,
     // report.
-    
+
     Iterator<Annotation> iter = aSourceAnnotationSet.iterator();
     Annotation currentAnnot;
     while(iter.hasNext()) {
@@ -1486,7 +1487,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
                 + " crossed over condition. It will be discarded");
       }// End if
     }// End while
-    
+
     // The dumpingSet is ready to be exported as XML
     // Here we go.
     if(sListener != null)
@@ -1530,7 +1531,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
             // Here, the annotation a Starts and Ends at the offset
             if(null != a.getFeatures().get("isEmptyAndSpan")
                     && "true".equals(a.getFeatures().get(
-                            "isEmptyAndSpan"))) {
+                    "isEmptyAndSpan"))) {
               // Assert: annotation a with start == end and isEmptyAndSpan
               tmpBuff.append(writeStartTag(a, includeFeatures, false));
               stack.push(a);
@@ -1600,7 +1601,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * This method returns a list with annotations ordered that way that they can
    * be serialized from left to right, at the offset. If one of the params is
    * null then an empty list will be returned.
-   * 
+   *
    * @param aDumpAnnotSet
    *          is a set containing all annotations that will be dumped.
    * @param offset
@@ -1709,18 +1710,18 @@ public class DocumentImpl extends AbstractLanguageResource implements
 
   /** Returns a string representing a start tag based on the input annot */
   private String writeStartTag(Annotation annot, boolean includeFeatures,
-          boolean includeNamespace) {
+                               boolean includeNamespace) {
 
     // Get the annot feature used to store the namespace prefix, if it
     // has been defined
     String nsPrefix = null;
-    
+
     if (serializeNamespaceInfo)
       nsPrefix = (String)annot.getFeatures().get(namespacePrefixFeature);
 
-    AnnotationSet originalMarkupsAnnotSet = this
-            .getAnnotations(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
-    StringBuffer strBuff = new StringBuffer("");
+    Map<Integer, Annotation> originalMarkupsAnnotMap = this
+            .getAnnotationsMap(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
+    StringBuffer strBuff = new StringBuffer();
     if(annot == null) return strBuff.toString();
     // if (!addGatePreserveFormatTag && isRootTag){
     if(theRootAnnotation != null
@@ -1752,7 +1753,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
         strBuff.append("\"");
         strBuff.append(writeFeatures(annot.getFeatures(), includeNamespace));
         strBuff.append(">");
-      } else if(originalMarkupsAnnotSet.contains(annot)) {
+      } else if(originalMarkupsAnnotMap.containsKey(annot.getId())) {
         strBuff.append("<");
         if (nsPrefix != null && !nsPrefix.isEmpty())
           strBuff.append(nsPrefix + ":");
@@ -1784,7 +1785,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
         strBuff.append("\"");
         strBuff.append(writeFeatures(annot.getFeatures(), includeNamespace));
         strBuff.append(">");
-      } else if(originalMarkupsAnnotSet.contains(annot)) {
+      } else if(originalMarkupsAnnotMap.containsKey(annot.getId())) {
         strBuff.append("<");
         if (nsPrefix != null && !nsPrefix.isEmpty())
           strBuff.append(nsPrefix + ":");
@@ -1803,12 +1804,39 @@ public class DocumentImpl extends AbstractLanguageResource implements
   }// writeStartTag()
 
   /**
+   * Get a named set of annotations. Creates a new set if one with this name
+   * doesn't exist yet. If the provided name is null or the empty string then
+   * it returns the default annotation set.
+   */
+  public Map<Integer, Annotation> getAnnotationsMap(String name) {
+    if(name == null || "".equals(name)) return null;
+    if(namedAnnotMap == null) {
+      namedAnnotMap = new ConcurrentHashMap<>();
+    }
+    Map<Integer, Annotation> annotationMap = namedAnnotMap.get(name);
+
+    if(annotationMap == null){
+      AnnotationSet annotationSet = getAnnotations(name);
+      annotationMap = new ConcurrentHashMap<>(annotationSet.size());
+      for(Annotation annotation:annotationSet){
+        if(annotation.getId() == null){
+          throw new RuntimeException("Can not create map with null ID");
+        }
+        annotationMap.put(annotation.getId(), annotation);
+      }
+      namedAnnotMap.put(name, annotationMap);
+    }
+
+    return annotationMap;
+  }
+
+  /**
    * Identifies the root annotations inside an annotation set. The root
    * annotation is the one that starts at offset 0, and has the greatest span.
    * If there are more than one with this function, then the annotation with the
    * smalled ID wil be selected as root. If none is identified it will return
    * null.
-   * 
+   *
    * @param anAnnotationSet
    *          The annotation set possibly containing the root annotation.
    * @return The root annotation or null is it fails
@@ -1930,7 +1958,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
     return writeEmptyTag(annot, true);
   } // writeEmptyTag
 
-  
+
   /** Returns a string representing an empty tag based on the input annot */
   private String writeEmptyTag(Annotation annot, boolean includeNamespace) {
     // Get the annot feature used to store the namespace prefix, if it
@@ -1943,11 +1971,11 @@ public class DocumentImpl extends AbstractLanguageResource implements
     if(annot == null) return strBuff.toString();
     strBuff.append("<");
     if (nsPrefix != null && !nsPrefix.isEmpty())
-          strBuff.append(nsPrefix + ":");
+      strBuff.append(nsPrefix + ":");
     strBuff.append(annot.getType());
-    AnnotationSet originalMarkupsAnnotSet = this
-            .getAnnotations(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
-    if(!originalMarkupsAnnotSet.contains(annot)) {
+    Map<Integer, Annotation> originalMarkupsAnnotMap = this
+            .getAnnotationsMap(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
+    if(!originalMarkupsAnnotMap.containsKey(annot.getId())) {
       strBuff.append(" gateId=\"");
       strBuff.append(annot.getId());
       strBuff.append("\"");
@@ -1973,7 +2001,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
      */
     strBuff.append("</");
     if (nsPrefix != null && !nsPrefix.isEmpty())
-          strBuff.append(nsPrefix + ":");
+      strBuff.append(nsPrefix + ":");
     strBuff.append(annot.getType() + ">");
     return strBuff.toString();
   }// writeEndTag()
@@ -1997,7 +2025,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
 
           if (nsPrefix.equals(key.toString())) continue;
           if (namespacePrefixFeature.equals(key.toString())) continue;
-          
+
           if (namespaceURIFeature.equals(key.toString())) {
             strBuff.append(" ");
             strBuff.append(nsPrefix + "=\"" + value.toString() + "\"");
@@ -2069,10 +2097,10 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * Returns a GateXml document that is a custom XML format for wich there is a
    * reader inside GATE called gate.xml.GateFormatXmlHandler. What it does is to
    * serialize a GATE document in an XML format.
-   * 
+   *
    * Implementation note: this method simply delegates to the static {@link
    * DocumentStaxUtils#toXml(gate.Document)} method
-   * 
+   *
    * @return a string representing a Gate Xml document.
    */
   @Override
@@ -2104,7 +2132,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   /**
    * Removes one of the named annotation sets. Note that the default annotation
    * set cannot be removed.
-   * 
+   *
    * @param name
    *          the name of the annotation set to be removed
    */
@@ -2167,7 +2195,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
   public Integer getNextAnnotationId() {
     return nextAnnotationId++;
   } // getNextAnnotationId
-  
+
   /** look at the next annotation ID without incrementing it */
   public Integer peakAtNextAnnotationId() {
     return nextAnnotationId;
@@ -2288,6 +2316,9 @@ public class DocumentImpl extends AbstractLanguageResource implements
   /** Named sets of annotations */
   protected Map<String, AnnotationSet> namedAnnotSets;
 
+  /** Named maps of annotations */
+  protected Map<String, Map<Integer, Annotation>> namedAnnotMap;
+
   /**
    * A property of the document that will be set when the user wants to create
    * the document from a string, as opposed to from a URL.
@@ -2311,7 +2342,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
    * actual document content.</B>
    */
   @CreoleParameter(disjunction = "source", priority = 2,
-      comment = "The content of the document")
+          comment = "The content of the document")
   public void setStringContent(String stringContent) {
     this.stringContent = stringContent;
   } // set StringContent
