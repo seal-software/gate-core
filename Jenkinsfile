@@ -45,7 +45,8 @@ pipeline {
 
         stage('deploy') {
             steps {
-                sh("mvn -B -Prelease -e deploy -Dmaven.test.skip=true")
+                echo('Not doing deploy any more, not sure if its needed')
+                // sh("mvn -B -Prelease -e deploy -Dmaven.test.skip=true")
             }
         }
 
