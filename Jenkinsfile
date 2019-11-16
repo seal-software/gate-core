@@ -18,7 +18,7 @@ pipeline {
     }}
 
     environment {
-        VERSION = "8.6_SEAL-${env.BUILD_NUMBER}"
+        VERSION = "8.7-SNAPSHOT_SEAL-${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -49,14 +49,6 @@ pipeline {
             }
         }
 
-        stage('sonar') {
-          when {
-            branch 'master'
-          }
-          steps {
-              sonarMvn()
-          }
-        }
     }
 
     post {
