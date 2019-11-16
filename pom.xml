@@ -584,25 +584,7 @@
 					<shortRevisionLength>7</shortRevisionLength>
 				</configuration>
 			</plugin>
-			<!-- regenerate the gate.classpath file in the distro folder -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-invoker-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>install</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>			
-				</executions>
-				<configuration>
-					<projectsDirectory>.</projectsDirectory>
-					<pomIncludes>distro/pom.xml</pomIncludes>
-					<goals>compile</goals>
-				</configuration>
-			</plugin>
+
 		</plugins>
 
 		<resources>
