@@ -67,7 +67,40 @@
 		<jempbox.version>1.8.16</jempbox.version>
 		<bouncycastle.version>1.64</bouncycastle.version>
 		<poi.version>4.0.1</poi.version>
+
+		<distributionHost>http://nexus.seal-software.net</distributionHost>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- used for escaping strings in the Annotation Stack and elsewhere -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-text</artifactId>
+				<version>1.8</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-utils</artifactId>
+				<version>3.1.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore</artifactId>
+				<version>4.4.11</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>1.7.29</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<!-- things that we repackage under an alternative package name -->
@@ -162,12 +195,16 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<!-- used for escaping strings in the Annotation Stack and elsewhere -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.9</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+		</dependency>
+
 
 		<!-- used to load files into String variables as well as helping to close 
 			streams etc. -->
@@ -321,14 +358,7 @@
 	
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
-		</dependency>
-	
-		<dependency>
-			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.25</version>
 		</dependency>
 		<!-- this marks the end of the Tika madness -->
 
@@ -679,6 +709,25 @@
 	</distributionManagement>
 
 	<profiles>
+		<profile>
+			<id>release</id>
+			<properties>
+				<!-- All tests are run. -->
+				<skip.integration.tests>false</skip.integration.tests>
+				<skip.unit.tests>false</skip.unit.tests>
+			</properties>
+			<distributionManagement>
+				<repository>
+					<id>seal-releases</id>
+					<name>Internal Releases</name>
+					<url>${distributionHost}/content/repositories/releases/</url>
+				</repository>
+				<snapshotRepository>
+					<id>seal-snapshots</id>
+					<url>${distributionHost}/content/repositories/snapshots/</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
 		<profile>
 			<id>gpg-sign</id>
 			<build>
