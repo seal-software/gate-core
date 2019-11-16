@@ -67,6 +67,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents the commonalities between all sorts of documents.
@@ -1718,9 +1719,9 @@ public class DocumentImpl extends AbstractLanguageResource implements
     if (serializeNamespaceInfo)
       nsPrefix = (String)annot.getFeatures().get(namespacePrefixFeature);
 
-    AnnotationSet originalMarkupsAnnotSet = this
-            .getAnnotations(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
-    StringBuffer strBuff = new StringBuffer("");
+    Map<Integer, Annotation> originalMarkupsAnnotMap = this
+            .getAnnotationsMap(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
+    StringBuffer strBuff = new StringBuffer();
     if(annot == null) return strBuff.toString();
     // if (!addGatePreserveFormatTag && isRootTag){
     if(theRootAnnotation != null
@@ -1752,7 +1753,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
         strBuff.append("\"");
         strBuff.append(writeFeatures(annot.getFeatures(), includeNamespace));
         strBuff.append(">");
-      } else if(originalMarkupsAnnotSet.contains(annot)) {
+      } else if(originalMarkupsAnnotMap.containsKey(annot.getId())) {
         strBuff.append("<");
         if (nsPrefix != null && !nsPrefix.isEmpty())
           strBuff.append(nsPrefix + ":");
@@ -1784,7 +1785,7 @@ public class DocumentImpl extends AbstractLanguageResource implements
         strBuff.append("\"");
         strBuff.append(writeFeatures(annot.getFeatures(), includeNamespace));
         strBuff.append(">");
-      } else if(originalMarkupsAnnotSet.contains(annot)) {
+      } else if(originalMarkupsAnnotMap.containsKey(annot.getId())) {
         strBuff.append("<");
         if (nsPrefix != null && !nsPrefix.isEmpty())
           strBuff.append(nsPrefix + ":");
@@ -1801,6 +1802,33 @@ public class DocumentImpl extends AbstractLanguageResource implements
     }// End if
     return strBuff.toString();
   }// writeStartTag()
+
+  /**
+   * Get a named set of annotations. Creates a new set if one with this name
+   * doesn't exist yet. If the provided name is null or the empty string then
+   * it returns the default annotation set.
+   */
+  public Map<Integer, Annotation> getAnnotationsMap(String name) {
+    if(name == null || "".equals(name)) return null;
+    if(namedAnnotMap == null) {
+      namedAnnotMap = new ConcurrentHashMap<>();
+    }
+    Map<Integer, Annotation> annotationMap = namedAnnotMap.get(name);
+
+    if(annotationMap == null){
+      AnnotationSet annotationSet = getAnnotations(name);
+      annotationMap = new ConcurrentHashMap<>(annotationSet.size());
+      for(Annotation annotation:annotationSet){
+        if(annotation.getId() == null){
+          throw new RuntimeException("Can not create map with null ID");
+        }
+        annotationMap.put(annotation.getId(), annotation);
+      }
+      namedAnnotMap.put(name, annotationMap);
+    }
+
+    return annotationMap;
+  }
 
   /**
    * Identifies the root annotations inside an annotation set. The root
@@ -1945,9 +1973,9 @@ public class DocumentImpl extends AbstractLanguageResource implements
     if (nsPrefix != null && !nsPrefix.isEmpty())
           strBuff.append(nsPrefix + ":");
     strBuff.append(annot.getType());
-    AnnotationSet originalMarkupsAnnotSet = this
-            .getAnnotations(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
-    if(!originalMarkupsAnnotSet.contains(annot)) {
+    Map<Integer, Annotation> originalMarkupsAnnotMap = this
+            .getAnnotationsMap(GateConstants.ORIGINAL_MARKUPS_ANNOT_SET_NAME);
+    if(!originalMarkupsAnnotMap.containsKey(annot.getId())) {
       strBuff.append(" gateId=\"");
       strBuff.append(annot.getId());
       strBuff.append("\"");
@@ -2287,6 +2315,9 @@ public class DocumentImpl extends AbstractLanguageResource implements
 
   /** Named sets of annotations */
   protected Map<String, AnnotationSet> namedAnnotSets;
+
+  /** Named maps of annotations */
+  protected Map<String, Map<Integer, Annotation>> namedAnnotMap;
 
   /**
    * A property of the document that will be set when the user wants to create
