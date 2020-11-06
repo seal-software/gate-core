@@ -13,7 +13,7 @@ pipeline {
 
     agent { docker {
         label 'medium'
-        image 'docker.seal-software.net/build-agent'
+        image 'docker.seal-software.net/build-agent-java11'
         args dockerArgs('--network="host"')
     }}
 
