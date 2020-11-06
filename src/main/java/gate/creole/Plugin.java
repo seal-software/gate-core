@@ -1080,7 +1080,7 @@ public abstract class Plugin {
       // we've found a CreoleResource annotation on this class
       if(desc.equals(CREOLE_RESOURCE_DESC)) {
         foundCreoleResource = true;
-        return new AnnotationVisitor(Opcodes.ASM5) {
+        return new AnnotationVisitor(Opcodes.ASM8) {
           @Override
           public void visit(String name, Object value) {
             if(name.equals("name") && resInfo.getResourceName() == null) {
