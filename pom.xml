@@ -7,7 +7,7 @@
 
 	<groupId>uk.ac.gate</groupId>
 	<artifactId>gate-core</artifactId>
-	<version>8.7-SNAPSHOT</version>
+	<version>8.6.1</version>
 
 	<description>
         GATE - general architecture for text engineering - is open source
@@ -207,7 +207,7 @@
 		</dependency>
 
 
-		<!-- used to load files into String variables as well as helping to close 
+		<!-- used to load files into String variables as well as helping to close
 			streams etc. -->
 		<dependency>
 			<groupId>commons-io</groupId>
