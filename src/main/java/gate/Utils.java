@@ -16,6 +16,10 @@
 package gate;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,8 +32,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
 import gate.annotation.AnnotationSetImpl;
 import gate.annotation.ImmutableAnnotationSetImpl;
@@ -754,14 +758,59 @@ public class Utils {
    * repeated every time the same situation occurs.
    * 
    * @param logger - the logger instance to use
-   * @param level  - the severity level for the message
+   * @param level  - a Log4J severity level for the message
    * @param message - the message itself
+   * @deprecated Log4J support will be removed in future, please use SLF4J
    */
-  public static void logOnce (Logger logger, Level level, String message) {
-    if(!alreadyLoggedMessages.contains(message)) { 
-      logger.log(level, message);
+  @Deprecated
+  public static void logOnce (org.apache.log4j.Logger logger, org.apache.log4j.Level level, String message) {
+    if(!alreadyLoggedMessages.contains(message)) {
+
+	   try {
+          logger.log(level, message);
+      } catch (Exception e) {
+         System.err.println(
+            "Failed to access logger through deprecated gate.Utils.logOnce method.\n"+
+            "Log message was: " + message);
+      }
+
       alreadyLoggedMessages.add(message);
     }
+  }
+  
+  /**
+   * Issue a message to the log but only if the same message has not
+   * been logged already in the same GATE session.
+   * This is intended for explanations or warnings that should not be 
+   * repeated every time the same situation occurs.
+   * 
+   * @param logger - the logger instance to use
+   * @param level  - an SLF4J severity level for the message
+   * @param message - the message itself
+   */
+  public static void logOnce(Logger logger, Level level, String message) {
+	  if (!alreadyLoggedMessages.contains(message)) {
+		  switch (level) {
+		  	case TRACE:
+		  		logger.trace(message);
+		  		break;
+		  	case DEBUG:
+	  			logger.debug(message);
+		  		break;
+		  	case INFO:
+	  			logger.info(message);
+		  		break;
+		  	case WARN:
+	  			logger.warn(message);
+		  		break;
+		  	case ERROR:
+	  			logger.error(message);
+		  		break;
+		  	default:
+		  		// unknown log level, should be impossible
+		  }
+		  alreadyLoggedMessages.add(message);
+	  }
   }
 
   /**
@@ -1363,4 +1412,39 @@ public class Utils {
     return new ImmutableAnnotationSetImpl(origSet.getDocument(),tmp);    
   }
   
+  public static URL resolveURL(String url) throws IOException {
+    while (true) {
+      // while we are still following redirects...
+
+      // create an actual URL instance from the string representation
+      URL resourceUrl = new URL(url);
+
+      if (!resourceUrl.getProtocol().startsWith("http"))
+          return resourceUrl;
+
+      // open a connection to the URL and...
+      HttpURLConnection conn = (HttpURLConnection) resourceUrl.openConnection();
+
+      // set a bunch of connection properties
+      conn.setRequestMethod("HEAD");
+      conn.setConnectTimeout(30000);
+      conn.setReadTimeout(30000);
+      conn.setInstanceFollowRedirects(false); // Make the logic below easier to detect redirections
+
+      switch (conn.getResponseCode()) {
+      case HttpURLConnection.HTTP_MOVED_PERM:
+      case HttpURLConnection.HTTP_MOVED_TEMP:
+        // if we've hit a redirect then get the location from the header
+        String location = conn.getHeaderField("Location");
+        location = URLDecoder.decode(location, "UTF-8");
+        URL next = new URL(resourceUrl, location); // Deal with relative URLs
+        url = next.toExternalForm();
+        continue;
+      }
+
+      // we've found a URL without a redirect so at this point we can stop
+      return resourceUrl;
+    }
+  }
+
 }

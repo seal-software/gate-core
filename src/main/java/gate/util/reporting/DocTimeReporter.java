@@ -35,8 +35,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
-
 import gate.util.reporting.exceptions.BenchmarkReportExecutionException;
 import gate.util.reporting.exceptions.BenchmarkReportFileAccessException;
 import gate.util.reporting.exceptions.BenchmarkReportInputFileFormatException;
@@ -156,7 +154,7 @@ public class DocTimeReporter implements BenchmarkReportable {
    * resources and system noted time.
    *
    * @param reportContainer
-   *          An Object of type LinkedHashMap<String, Object> containing the
+   *          An Object of type LinkedHashMap&lt;String, Object&gt; containing the
    *          processing elements (with time in milliseconds) in hierarchical
    *          structure.
    * @return An Object containing modified hierarchical structure of processing
@@ -193,8 +191,8 @@ public class DocTimeReporter implements BenchmarkReportable {
       Iterator<String> keyIt = mapKeys.iterator();
       while (keyIt.hasNext()) {
         String key = keyIt.next();
-        String comp1 = passedMap.get(key).toString();
-        String comp2 = val.toString();
+        String comp1 = passedMap.get(key);
+        String comp2 = val;
 
         if (comp1.equals(comp2)) {
           passedMap.remove(key);
@@ -246,7 +244,7 @@ public class DocTimeReporter implements BenchmarkReportable {
    * Prints a report as per the value provided for print media option.
    *
    * @param reportSource
-   *          An Object of type LinkedHashMap<String, Object> containing the
+   *          An Object of type LinkedHashMap&lt;String, Object&gt; containing the
    *          processing elements (with time in milliseconds) in hierarchical
    *          structure.
    * @param outputFile
@@ -375,7 +373,7 @@ public class DocTimeReporter implements BenchmarkReportable {
    * @param inputFile
    *          A handle to the input benchmark file.
    *
-   * @return An Object of type LinkedHashMap<String, Object> containing the
+   * @return An Object of type LinkedHashMap&lt;String, Object&gt; containing the
    *         processing elements (with time in milliseconds) in hierarchical
    *         structure. Null if there was an error.
    *
@@ -963,9 +961,8 @@ public class DocTimeReporter implements BenchmarkReportable {
    */
   private long tail(File fileToBeRead, int chunkSize)
       throws BenchmarkReportInputFileFormatException {
-    RandomAccessFile raf = null;
-    try {
-      raf = new RandomAccessFile(fileToBeRead, "r");
+    try (RandomAccessFile raf = new RandomAccessFile(fileToBeRead, "r")){
+      ;
       Vector<String> lastNlines = new Vector<String>();
       int delta = 0;
       long curPos = 0;
@@ -1005,9 +1002,6 @@ public class DocTimeReporter implements BenchmarkReportable {
     } catch (IOException e) {
       e.printStackTrace();
       return -1;
-    }
-    finally {
-      IOUtils.closeQuietly(raf);
     }
   }
 

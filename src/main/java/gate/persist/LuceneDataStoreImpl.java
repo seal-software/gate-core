@@ -1,5 +1,27 @@
 package gate.persist;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import gate.Corpus;
 import gate.DataStore;
 import gate.Document;
@@ -27,30 +49,6 @@ import gate.util.Files;
 import gate.util.GateRuntimeException;
 import gate.util.Strings;
 import gate.util.persistence.PersistenceManager;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.SoftReference;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.commons.io.IOUtils;
 
 public class LuceneDataStoreImpl extends SerialDataStore implements
                                                         SearchableDataStore,
@@ -174,9 +172,7 @@ public class LuceneDataStoreImpl extends SerialDataStore implements
      * want to support old style: String versionInVersionFile = "1.0";
      * (but this means it will open *any* directory)
      */
-    BufferedReader isr = null;
-    try {
-      isr = new BufferedReader(new FileReader(getVersionFile()));
+    try (BufferedReader isr = new BufferedReader(new FileReader(getVersionFile()))) {
       currentProtocolVersion = isr.readLine();
       String indexDirRelativePath = isr.readLine();
 
@@ -199,8 +195,6 @@ public class LuceneDataStoreImpl extends SerialDataStore implements
       }
     } catch(IOException e) {
       throw new PersistenceException("Invalid storage directory: " + e);
-    } finally {
-      IOUtils.closeQuietly(isr);
     }
     
     if(!isValidProtocolVersion(currentProtocolVersion))

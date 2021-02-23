@@ -16,7 +16,13 @@
 
 package gate;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,9 +37,14 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import gate.util.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.eclipse.aether.util.version.GenericVersionScheme;
+import org.eclipse.aether.version.InvalidVersionSpecificationException;
+import org.eclipse.aether.version.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.thoughtworks.xstream.XStream;
 
 import gate.config.ConfigDataProcessor;
 import gate.creole.CreoleRegisterImpl;
@@ -41,9 +52,15 @@ import gate.creole.Plugin;
 import gate.creole.ResourceData;
 import gate.event.CreoleListener;
 import gate.gui.creole.manager.PluginUpdateManager;
-import org.eclipse.aether.util.version.GenericVersionScheme;
-import org.eclipse.aether.version.InvalidVersionSpecificationException;
-import org.eclipse.aether.version.Version;
+import gate.util.Benchmark;
+import gate.util.BomStrippingInputStreamReader;
+import gate.util.Files;
+import gate.util.GateClassLoader;
+import gate.util.GateException;
+import gate.util.GateRuntimeException;
+import gate.util.OptionsMap;
+import gate.util.Strings;
+import gate.util.persistence.XStreamSecurity;
 
 /**
  * The class is responsible for initialising the GATE libraries, and providing
@@ -53,7 +70,7 @@ import org.eclipse.aether.version.Version;
 public class Gate implements GateConstants {
 
   /** A logger to use instead of sending messages to Out or Err **/
-  protected static final Logger log = Logger.getLogger(Gate.class);
+  protected static final Logger log = LoggerFactory.getLogger(Gate.class);
 
   /**
    * The default StringBuffer size, it seems that we need longer string than the
@@ -124,7 +141,7 @@ public class Gate implements GateConstants {
     } finally {
       IOUtils.closeQuietly(reader);
     }
-
+    
     VERSION_STRING = temp;
 
     // find out the build number
@@ -537,8 +554,7 @@ public class Gate implements GateConstants {
 	      // this should never happen
 	      throw new GateRuntimeException(mue);
 	    }
-	    try {
-	      InputStream configStream = new FileInputStream(siteConfigFile);
+	    try (InputStream configStream = new FileInputStream(siteConfigFile)) {
 	      configProcessor.parseConfigFile(configStream, configURL);
 	    }
 	    catch(IOException e) {
@@ -556,8 +572,7 @@ public class Gate implements GateConstants {
         // this should never happen
         throw new GateRuntimeException(mue);
       }
-      try {
-        InputStream configStream = new FileInputStream(userConfigFile);
+      try (InputStream configStream = new FileInputStream(userConfigFile)) {
         configProcessor.parseConfigFile(configStream, configURL);
       }
       catch(IOException e) {
@@ -569,12 +584,6 @@ public class Gate implements GateConstants {
     // remember the init-time config options
     originalUserConfig.putAll(userConfig);
   } // initConfigData()
-
-  /**
-   * Flag controlling whether we should try to access the net, e.g. when setting
-   * up a base URL.
-   */
-  private static boolean netConnected = false;
 
   private static int lastSym;
 
@@ -1159,6 +1168,13 @@ public class Gate implements GateConstants {
       this.resourceComment = comment;
     }
     
+    public ResourceInfo(String name, String className, String comment, String helpURL) {
+      this.resourceClassName = className;
+      this.resourceName = name;
+      this.resourceComment = comment;
+      this.helpURL = helpURL;
+    }
+
     public String toString() {
       return resourceName+" ("+resourceClassName+")";
     }
@@ -1192,7 +1208,15 @@ public class Gate implements GateConstants {
     	this.resourceName = resourceName;
     }
 
-    /**
+    public String getHelpURL() {
+	    return helpURL;
+    }
+
+    public void setHelpURL(String helpURL) {
+	    this.helpURL = helpURL;
+    }
+
+	/**
      * The class for the resource.
      */
     protected String resourceClassName;
@@ -1206,6 +1230,11 @@ public class Gate implements GateConstants {
      * The comment for the resource.
      */
     protected String resourceComment;
+
+    /**
+     * The help URL for the resource.
+     */
+    protected String helpURL;
   }
 
   /**
@@ -1375,7 +1404,7 @@ public class Gate implements GateConstants {
    * bar on the main frame or the progress listener that updates the
    * progress bar on the main frame). The keys used are the class names
    * of the listener interface and the values are the actual listeners
-   * (e.g "gate.event.StatusListener" -> this). The returned map is the
+   * (e.g "gate.event.StatusListener" -&gt; this). The returned map is the
    * actual data member used to store the listeners so any changes in
    * this map will be visible to everyone.
    * @return the listeners map
@@ -1395,4 +1424,28 @@ public class Gate implements GateConstants {
   private static final java.util.Map<String, EventListener> listeners =
     new HashMap<String, EventListener>();
 
+  /**
+   * Default to using a minimal blacklist for XStream. This essentially
+   * allows us to continue to allow all types in features, while just
+   * blocking those obscure cases known to be dangerous, and it has the
+   * nice side effect of suppressing the scary looking warning.
+   */
+  private static XStreamSecurity xStreamSecurity = new XStreamSecurity.MinimalBlacklist();
+
+  public static XStreamSecurity getXStreamSecurity() {
+    return xStreamSecurity;
+  }
+
+  public static void setXStreamSecurity(XStreamSecurity xStreamSecurity) {
+    if (Gate.isInitialised())
+      throw new IllegalStateException("XStream security must be set prior to initializing GATE");
+
+    Gate.xStreamSecurity = xStreamSecurity;
+  }
+
+  public static void configureXStreamSecurity(XStream xstream) {
+	  if (xStreamSecurity == null) return;
+
+	  xStreamSecurity.configure(xstream);
+  }
 } // class Gate

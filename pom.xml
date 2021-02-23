@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -7,7 +8,7 @@
 
 	<groupId>uk.ac.gate</groupId>
 	<artifactId>gate-core</artifactId>
-	<version>8.6.1</version>
+	<version>9.0</version>
 
 	<description>
         GATE - general architecture for text engineering - is open source
@@ -62,46 +63,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
-		<tika.version>1.22</tika.version>
-		<pdfbox.version>2.0.17</pdfbox.version>
+		<tika.version>1.25</tika.version>
+		<pdfbox.version>2.0.22</pdfbox.version>
 		<jempbox.version>1.8.16</jempbox.version>
-		<bouncycastle.version>1.64</bouncycastle.version>
-		<poi.version>4.0.1</poi.version>
+		<bouncycastle.version>1.68</bouncycastle.version>
+		<poi.version>4.1.2</poi.version>
+		<maven.resolver.version>1.6.1</maven.resolver.version>
+		<maven.version>3.6.3</maven.version>
+		<slf4j.version>1.7.30</slf4j.version>
 		<seal.commons.version>7.0.0-244</seal.commons.version>
-
 		<distributionHost>http://nexus.seal-software.net</distributionHost>
 	</properties>
-
-	<dependencyManagement>
-		<dependencies>
-			<!-- used for escaping strings in the Annotation Stack and elsewhere -->
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-lang3</artifactId>
-				<version>3.9</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-text</artifactId>
-				<version>1.8</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-utils</artifactId>
-				<version>3.1.0</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpcore</artifactId>
-				<version>4.4.11</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>1.7.29</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<dependencies>
 		<!-- things that we repackage under an alternative package name -->
@@ -116,31 +88,31 @@
 		<dependency>
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-impl</artifactId>
-			<version>1.1.1</version>
+			<version>${maven.resolver.version}</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-model-builder</artifactId>
-			<version>3.5.3</version>
+			<version>${maven.version}</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-resolver-provider</artifactId>
-			<version>3.5.3</version>
+			<version>${maven.version}</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-connector-basic</artifactId>
-			<version>1.1.1</version>
+			<version>${maven.resolver.version}</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-transport-http</artifactId>
-			<version>1.1.1</version>
+			<version>${maven.resolver.version}</version>
 			<scope>compile</scope>
 			<exclusions>
 				<exclusion>
@@ -149,37 +121,37 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-transport-file</artifactId>
-			<version>1.1.1</version>
+			<version>${maven.resolver.version}</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-transport-wagon</artifactId>
-			<version>1.1.1</version>
+			<version>${maven.resolver.version}</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-transport-classpath</artifactId>
-			<version>1.1.1</version>
+			<version>${maven.resolver.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-settings-builder</artifactId>
-			<version>3.5.3</version>
-		</dependency> 
+			<version>${maven.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-container-default</artifactId>
-			<version>1.0-alpha-9-stable-1</version>
+			<version>2.1.0</version>
 
-                        <!-- we only need one simple abstract class from this JAR -->
+			<!-- we only need one simple abstract class from this JAR -->
 			<exclusions>
 				<exclusion>
 					<groupId>*</groupId>
@@ -188,40 +160,74 @@
 			</exclusions>
 		</dependency>
 
-		<!-- needed to ensure the same version across configurations -->
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.3</version>
-			<scope>compile</scope>
-		</dependency>
-
+		<!-- used for escaping strings in the Annotation Stack and elsewhere -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
+			<version>3.11</version>
+			<scope>compile</scope>
 		</dependency>
 
+		<!-- gate-core no longer need this, but if we remove it we break some plugins.
+		     Current solution is to mark it as runtime so it's not exposed directly
+		     if someone depends on gate-core. It's inclusion should be considered
+		     DEPRECATED and it will be removed in a later version of gate-core -->
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-text</artifactId>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+			<scope>runtime</scope>
 		</dependency>
 
-
-		<!-- used to load files into String variables as well as helping to close
+		<!-- used to load files into String variables as well as helping to close 
 			streams etc. -->
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
+			<version>2.8.0</version>
 			<scope>compile</scope>
 		</dependency>
 
-		<!-- the logging framework GATE uses -->
+		<!-- We use SLF4J as the logging framework and allow users to
+		     choose the most relevant logging implementation for their
+		     use case -->
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
 			<scope>compile</scope>
+		</dependency>
+
+		<!--  we used to use Log4J directly and so we add the bridge to avoid
+		      breaking existing code. Over time we should replace the legacy
+		      code and then remove this dependency, or at least change the
+		      scope to runtime to avoid breaking plugins which assume it
+		      is available via the main GATE classloader.
+
+		      Note that in order to remove this we would need to also remove
+		      the gate.Utils.logOnce() method. I did wonder about changing the
+		      params to use Object instead of Logger and then access via reflection
+		      but that changes the method signature meaning plugins compiled against
+		      previous versions can't see the method at all and hence throw a
+		      NoSuchMethodError. Basically to fully remove this we need to
+		      update all the plugins to use SLF4J instead of Log4J (sigh).
+		 -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- some of our dependencies use commons-logging, but we exclude those
+		     transitive dependencies a) to ensure we are consistent in which version
+		     is pulled in, but also so we can use the bridge API to delegate the
+		     calls back to SLF4J and hence have proper control over the log messages -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 
 		<!-- used extensively throughout GATE for processing XML files -->
@@ -236,7 +242,13 @@
 		<dependency>
 			<groupId>net.sourceforge.nekohtml</groupId>
 			<artifactId>nekohtml</artifactId>
-			<version>1.9.14</version>
+			<!-- if we use a higher version then it brings in a version of
+			     Xerces that needs a newer version of the XML APIs than is
+			     bundled with Java 8. As we exclude the xml-apis throughout
+			     this pom file that means everything breaks. If we move the
+			     minimum Java version to 9 then that would include the right
+			     XML APIs. -->
+			<version>1.9.17</version>
 			<scope>compile</scope>
 			<exclusions>
 				<!-- exclude stuff that is now part of Java -->
@@ -259,7 +271,7 @@
 			<artifactId>tika-parsers</artifactId>
 			<version>${tika.version}</version>
 			<scope>compile</scope>
-	
+
 			<exclusions>
 				<exclusion>
 					<groupId>*</groupId>
@@ -267,14 +279,14 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
 			<version>${tika.version}</version>
 			<scope>compile</scope>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
@@ -318,7 +330,7 @@
 			<artifactId>bcprov-jdk15on</artifactId>
 			<version>${bouncycastle.version}</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -350,16 +362,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
-			<version>2.12.0</version>
-		</dependency>
-	
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
+			<version>2.15.0</version>
 		</dependency>
 		<!-- this marks the end of the Tika madness -->
 
@@ -369,7 +376,7 @@
 		<dependency>
 			<groupId>org.codehaus.woodstox</groupId>
 			<artifactId>woodstox-core-lgpl</artifactId>
-			<version>4.2.0</version>
+			<version>4.4.1</version>
 			<scope>compile</scope>
 			<exclusions>
 				<!-- exclude stuff that is part of core Java -->
@@ -385,7 +392,7 @@
 		<dependency>
 			<groupId>org.apache.ant</groupId>
 			<artifactId>ant</artifactId>
-			<version>1.9.3</version>
+			<version>1.10.9</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -394,7 +401,7 @@
 		<dependency>
 			<groupId>com.thoughtworks.xstream</groupId>
 			<artifactId>xstream</artifactId>
-			<version>1.4.7</version>
+			<version>1.4.15</version>
 			<scope>compile</scope>
 			<exclusions>
 				<!-- we will pull in the full xpp3 so we don't need these -->
@@ -421,7 +428,7 @@
 		<dependency>
 			<groupId>jaxen</groupId>
 			<artifactId>jaxen</artifactId>
-			<version>1.1.6</version>
+			<version>1.2.0</version>
 			<scope>runtime</scope>
 			<exclusions>
 				<!-- we don't need any of these dependencies -->
@@ -456,7 +463,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.9.10</version>
+			<version>2.12.1</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -464,7 +471,7 @@
 		<dependency>
 			<groupId>org.xhtmlrenderer</groupId>
 			<artifactId>flying-saucer-core</artifactId>
-			<version>9.0.4</version>
+			<version>9.1.20</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -472,7 +479,7 @@
 		<dependency>
 			<groupId>xmlunit</groupId>
 			<artifactId>xmlunit</artifactId>
-			<version>1.5</version>
+			<version>1.6</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -480,7 +487,7 @@
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
-			<version>2.9.2</version>
+			<version>2.10.9</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -488,7 +495,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -496,12 +503,12 @@
 		<dependency>
 			<groupId>org.codehaus.httpcache4j</groupId>
 			<artifactId>httpcache4j-core</artifactId>
-			<version>5.1.0</version>
+			<version>5.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.httpcache4j.storage</groupId>
 			<artifactId>storage-file</artifactId>
-			<version>5.1.0</version>
+			<version>5.1.1</version>
 		</dependency>
 
 		<!-- these dependencies should ensure the plugin works properly under Java
@@ -509,17 +516,17 @@
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
-			<version>2.3.0</version>
+			<version>2.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-core</artifactId>
-			<version>2.3.0</version>
+			<version>2.3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>2.3.0</version>
+			<version>2.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.activation</groupId>
@@ -530,7 +537,14 @@
 	</dependencies>
 
 	<build>
+
+
 		<plugins>
+		<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-site-plugin</artifactId>
+        		<version>3.8.2</version>
+        	</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -545,7 +559,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.4</version>
+				<version>0.8.5</version>
 				<executions>
 					<execution>
 						<id>default-prepare-agent</id>
@@ -565,7 +579,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
+				<version>3.1.1</version>
 				<configuration>
 					<!-- in theory we should only need one of these and it would be nice 
 						to get rid of them alltogether but that's for another day -->
@@ -591,7 +605,46 @@
 					<shortRevisionLength>7</shortRevisionLength>
 				</configuration>
 			</plugin>
+			<!-- regenerate the gate.classpath file in the distro folder -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-invoker-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<projectsDirectory>.</projectsDirectory>
+					<pomIncludes>distro/pom.xml</pomIncludes>
+					<goals>compile</goals>
+				</configuration>
+			</plugin>
 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<executions>
+					<execution>
+						<id>enforce-maven</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>3.6.0</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 
 		<resources>
@@ -612,7 +665,7 @@
 				<filtering>false</filtering>
 				<excludes>
 					<exclude>gate/resources/version.txt</exclude>
-					<exclude>gate/resources/creole/defaultPlugins.tsv</exclude>
+					<exclude>gate/resources/build.txt</exclude>
 				</excludes>
 			</resource>
 		</resources>
@@ -620,20 +673,25 @@
 
 	<reporting>
 		<plugins>
+      		<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-site-plugin</artifactId>
+        		<version>3.8.2</version>
+        	</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
-				<version>2.19.1</version>
+				<version>3.0.0-M4</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.1.1</version>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.3</version>
+				<version>3.0.5</version>
 				<configuration>
 					<findbugsXmlOutput>true</findbugsXmlOutput>
 					<findbugsXmlWithMessages>true</findbugsXmlWithMessages>
@@ -660,7 +718,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.9</version>
+				<version>3.0.0</version>
 				<configuration>
 					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
 					<systemPropertyVariables>
@@ -671,7 +729,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
+				<version>3.1.1</version>
 				<configuration>
 					<!-- in theory we should only need one of these and it would be nice 
 						to get rid of them alltogether but that's for another day -->

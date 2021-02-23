@@ -511,7 +511,7 @@ public class CorefEditor
     Iterator<String> setIter = matchesMap.keySet().iterator();
     HashMap<Object, Boolean> annotSetsNamesMap = new HashMap<Object, Boolean>();
     for (int i = 0; i < annotSets.getItemCount(); i++) {
-      annotSetsNamesMap.put( annotSets.getItemAt(i), new Boolean(false));
+      annotSetsNamesMap.put( annotSets.getItemAt(i), false);
     }
     outer:while (setIter.hasNext()) {
       String currentSet = setIter.next();
@@ -522,7 +522,7 @@ public class CorefEditor
         continue;
 
       AnnotationSet currAnnotSet = getAnnotationSet(currentSet);
-      annotSetsNamesMap.put(currentSet, new Boolean(true));
+      annotSetsNamesMap.put(currentSet, true);
 
       Iterator<List<Integer>> entitiesIter = matches.iterator();
       //each entity is a list of annotation IDs
@@ -549,7 +549,7 @@ public class CorefEditor
 
         // intially no chainHead is visited
         while (chainsList.hasNext()) {
-          visitedList.put( chainsList.next(), new Boolean(false));
+          visitedList.put( chainsList.next(), false);
         }
 
         // now we need to search for the chainHead of each group
@@ -567,7 +567,7 @@ public class CorefEditor
             // now lets find out the headnode for this, if it is available
             chainHead = findOutTheChainHead(currAnnotSet.get(id), currentSet);
             if (chainHead != null) {
-              visitedList.put(chainHead, new Boolean(true));
+              visitedList.put(chainHead, true);
               break;
             }
           }
@@ -600,8 +600,8 @@ public class CorefEditor
                 chains.put(tempChainHead, tempIds);
                 corefChains.put(corefAnnotationSetNodesMap.get(currentSet),
                                 chains);
-                visitedList.put(chainHead, new Boolean(false));
-                visitedList.put(tempChainHead, new Boolean(true));
+                visitedList.put(chainHead, false);
+                visitedList.put(tempChainHead, true);
 
               }
               else {
@@ -652,7 +652,7 @@ public class CorefEditor
               newHashMap.put(chainNode, ids);
               corefChains.put(annotSetNode, newHashMap);
 
-              visitedList.put(chainNode, new Boolean(true));
+              visitedList.put(chainNode, true);
             }
             else {
               // create the new chainNode
@@ -673,7 +673,7 @@ public class CorefEditor
                 selectionValue = true;
 
               // entry into the selection
-              tempSelection.put(chainNode.toString(), new Boolean(selectionValue));
+              tempSelection.put(chainNode.toString(), selectionValue);
               selectionChainsMap.put(currentSet, tempSelection);
 
               // entry into the colors
@@ -1148,7 +1148,7 @@ public class CorefEditor
 
         // chainNode --> All related annotIds
         chainLinks.put(chainNode, matches);
-        selectionMap.put(chainNode.toString(), new Boolean(false));
+        selectionMap.put(chainNode.toString(), false);
         // and generate the color for this chainNode
         float components[] = colorGenerator.getNextColor().getComponents(null);
         Color color = new Color(components[0],
@@ -2051,7 +2051,7 @@ public class CorefEditor
 
         boolean isSelected = ! currentSelections.get(node.toString()).
                              booleanValue();
-        currentSelections.put(node.toString(), new Boolean(isSelected));
+        currentSelections.put(node.toString(), isSelected);
 
         // so now we need to highlight all the stuff
         highlightAnnotations();

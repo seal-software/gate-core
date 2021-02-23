@@ -16,21 +16,12 @@
 
 package gate;
 
-import gate.corpora.MimeType;
-import gate.corpora.RepositioningInfo;
-import gate.creole.AbstractLanguageResource;
-import gate.event.StatusListener;
-import gate.util.BomStrippingInputStreamReader;
-import gate.util.DocumentFormatException;
-import gate.util.GateException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -41,6 +32,13 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
+
+import gate.corpora.MimeType;
+import gate.corpora.RepositioningInfo;
+import gate.creole.AbstractLanguageResource;
+import gate.event.StatusListener;
+import gate.util.BomStrippingInputStreamReader;
+import gate.util.DocumentFormatException;
 
 /** The format of Documents. Subclasses of DocumentFormat know about
   * particular MIME types and how to unpack the information in any
@@ -180,7 +178,7 @@ extends AbstractLanguageResource {
   public static Set<String> getSupportedMimeTypes() {
     return Collections.unmodifiableSet(mimeString2mimeTypeMap.keySet());
   }
-
+  
   /**
     * Returns a MymeType having as input a URL object. If the MimeType wasn't
     * recognized it returns <b>null</b>.
@@ -548,8 +546,12 @@ extends AbstractLanguageResource {
    *         the MIME type does not have a registered DocumentFormat
    */
   public static DocumentFormat getDocumentFormat(MimeType mimeType) {
-    return mimeString2ClassHandlerMap.get(mimeType.getType() + "/"
+    if(mimeType != null) {
+      return mimeString2ClassHandlerMap.get(mimeType.getType() + "/"
             + mimeType.getSubtype());
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -615,6 +617,63 @@ extends AbstractLanguageResource {
     return Collections.unmodifiableSet(suffixes2mimeTypeMap.keySet());
   }
 
+  /**
+   * Utility function to determine if reading from the URL will be done by
+   * a registered DocumentFormat.
+   *  
+   * This tries to find out if there is a registered DocumentFormat for 
+   * the mime type string or document URL. If yes, it is checked if that 
+   * document format implements DirectLoadingDocumentFormat. If yes, returns
+   * true, otherwise returns false. 
+   * 
+   * If both the mime type and docUrl are null or empty, the default behavior
+   * of false is returned. 
+   * 
+   * @param mimeTypeStr the mime type string parameter for the Document
+   * @param docUrl the sourceUrl parameter for the Document
+   * @return true if the URL will be read directly by a document format.
+   */
+  public static boolean willReadFromUrl(String mimeTypeStr, URL docUrl) {
+    // figure out if we have a document format registered for the 
+    // mime type. If yes, check if the document format implemts 
+    // BinaryDocumentFormat. If yes, ask the document format if we 
+    // should create the content from the URL here or leave that for
+    // the DocumentFormat to do later. 
+    DocumentFormat docFormat = null;
+    // If a mimeTypeStr is specified, try to get the document format 
+    // registered for it
+    MimeType theType = null;
+    if (mimeTypeStr != null && mimeTypeStr.length() > 0) {
+      theType = DocumentFormat.getMimeTypeForString(mimeTypeStr);
+      if (theType != null) {
+        docFormat = DocumentFormat.getDocumentFormat(theType);
+      }
+    }
+    // If we could not get the docFormat from the mimeTypeStr, lets see
+    // if we can get it from the url
+    if (docFormat == null && docUrl != null) {
+      // if we do not have a mime type already, try to find one from the
+      // URL suffixes. Only if this fails, use the methods that actually
+      // open the URL to to get a content type or magic number
+      for (String suffix : getFileSuffixes(docUrl)) {
+        theType = getMimeType(suffix);
+        if (theType != null) {
+          break;
+        }
+      }
+      if(theType != null) {
+        docFormat = DocumentFormat.getDocumentFormat(theType);
+      }
+      if (docFormat != null) {
+        theType = DocumentFormat.getMimeType(docUrl);
+        docFormat = DocumentFormat.getDocumentFormat(theType);
+      }
+    }
+    
+    return (docFormat != null && docFormat instanceof DirectLoadingDocumentFormat);
+  }
+
+  
   //StatusReporter Implementation
 
 

@@ -116,7 +116,7 @@ public class DocumentXmlUtils {
    * 
    * @param aFeatureMap
    *          the feature map that has to be saved as XML.
-   * @return a String like this: <Feature><Name>...</Name> <Value>...</Value></Feature><Feature>...</Feature>
+   * @return a String like this: &lt;Feature&gt;&lt;Name&gt;...&lt;/Name&gt; &lt;Value&gt;...&lt;/Value&gt;&lt;/Feature&gt;&lt;Feature&gt;...&lt;/Feature&gt;
    */
   public static StringBuffer featuresToXml(FeatureMap aFeatureMap, Map<String,StringBuffer> normalizedFeatureNames) {
     if(aFeatureMap == null) return new StringBuffer();
@@ -298,7 +298,7 @@ public class DocumentXmlUtils {
     // filterNonXmlChars
     // getoffsets for Nodes
     // getoffsets for XML entities
-    if(aText == null) return new String("");
+    if(aText == null) return "";
     StringBuffer textWithNodes = filterNonXmlChars(new StringBuffer(aText));
     // Construct a map from offsets to Chars ()
     SortedMap<Long, Character> offsets2CharsMap = new TreeMap<Long, Character>();

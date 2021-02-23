@@ -106,13 +106,13 @@ public class CorpusBenchmarkTool {
       propFile = new File("corpus_tool.properties");    
     Out.prln("Loading properties from " + propFile.getAbsolutePath());
     if (propFile.exists()) {
-      try {
-        InputStream inputStream = new FileInputStream(propFile);
+      try (InputStream inputStream = new FileInputStream(propFile)){
+        
         this.configs.load(inputStream);
         String thresholdString = this.configs.getProperty("threshold");
         if (thresholdString != null && !thresholdString.equals("")) {
           thresholdString=thresholdString.trim();
-          this.threshold = (new Double(thresholdString)).doubleValue();
+          this.threshold = Double.valueOf(thresholdString);
           Out.prln("New threshold is: " + this.threshold + "<P>\n");
         }
         String setName = this.configs.getProperty("annotSetName");
@@ -1516,42 +1516,42 @@ public class CorpusBenchmarkTool {
 
     Double oldPrecision = precisionByType.get(annotType);
     if (oldPrecision == null)
-      precisionByType.put(annotType, new Double(precisionAverage));
+      precisionByType.put(annotType, precisionAverage);
     else
       precisionByType.put(annotType,
-                          new Double(oldPrecision.doubleValue() + precisionAverage));
+                          oldPrecision.doubleValue() + precisionAverage);
 
     Integer precCount = prCountByType.get(annotType);
     if (precCount == null)
-      prCountByType.put(annotType, new Integer(1));
+      prCountByType.put(annotType, 1);
     else
-      prCountByType.put(annotType, new Integer(precCount.intValue() + 1));
+      prCountByType.put(annotType, precCount.intValue() + 1);
 
     Double oldFMeasure = fMeasureByType.get(annotType);
     if (oldFMeasure == null)
-      fMeasureByType.put(annotType, new Double(fMeasureAverage));
+      fMeasureByType.put(annotType, fMeasureAverage);
     else
       fMeasureByType.put(annotType,
-                         new Double(oldFMeasure.doubleValue() + fMeasureAverage));
+                         oldFMeasure.doubleValue() + fMeasureAverage);
 
     Integer fCount = fMeasureCountByType.get(annotType);
     if (fCount == null)
-      fMeasureCountByType.put(annotType, new Integer(1));
+      fMeasureCountByType.put(annotType, 1);
     else
-      fMeasureCountByType.put(annotType, new Integer(fCount.intValue() + 1));
+      fMeasureCountByType.put(annotType, fCount.intValue() + 1);
 
     Double oldRecall = recallByType.get(annotType);
     if (oldRecall == null)
-      recallByType.put(annotType, new Double(recallAverage));
+      recallByType.put(annotType, recallAverage);
     else
       recallByType.put(annotType,
-                       new Double(oldRecall.doubleValue() + recallAverage));
+                       oldRecall.doubleValue() + recallAverage);
 
     Integer recCount = recCountByType.get(annotType);
     if (recCount == null)
-      recCountByType.put(annotType, new Integer(1));
+      recCountByType.put(annotType, 1);
     else
-      recCountByType.put(annotType, new Integer(recCount.intValue() + 1));
+      recCountByType.put(annotType, recCount.intValue() + 1);
 
       //Update the missing, spurious, correct, and partial counts
     Long oldMissingNo = missingByType.get(annotType);
@@ -1615,11 +1615,11 @@ public class CorpusBenchmarkTool {
 
     Double oldPrecision = proc_precisionByType.get(annotType);
     if (oldPrecision == null)
-      proc_precisionByType.put(annotType, new Double(precisionAverage));
+      proc_precisionByType.put(annotType, precisionAverage);
     else
       proc_precisionByType.put(annotType,
-                               new Double(oldPrecision.doubleValue() +
-                                          precisionAverage));
+                               oldPrecision.doubleValue() +
+                                          precisionAverage);
     Integer precCount = proc_prCountByType.get(annotType);
     if (precCount == null)
       proc_prCountByType.put(annotType, new Integer(1));
@@ -1629,16 +1629,16 @@ public class CorpusBenchmarkTool {
     Double oldFMeasure = proc_fMeasureByType.get(annotType);
     if (oldFMeasure == null)
       proc_fMeasureByType.put(annotType,
-                              new Double(fMeasureAverage));
+                              fMeasureAverage);
     else
       proc_fMeasureByType.put(annotType,
-                              new Double(oldFMeasure.doubleValue() +
-                                         fMeasureAverage));
+                              oldFMeasure.doubleValue() +
+                                         fMeasureAverage);
     Integer fCount = proc_fMeasureCountByType.get(annotType);
     if (fCount == null)
-      proc_fMeasureCountByType.put(annotType, new Integer(1));
+      proc_fMeasureCountByType.put(annotType, 1);
     else
-      proc_fMeasureCountByType.put(annotType, new Integer(fCount.intValue() + 1));
+      proc_fMeasureCountByType.put(annotType, fCount.intValue() + 1);
 
     Double oldRecall = proc_recallByType.get(annotType);
     if (oldRecall == null)
