@@ -18,7 +18,7 @@ pipeline {
     }}
 
     environment {
-        VERSION = "8.7-SNAPSHOT_SEAL-${env.BUILD_NUMBER}"
+        VERSION = "9.0_SEAL-${env.BUILD_NUMBER}"
     }
 
     stages {

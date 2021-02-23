@@ -168,6 +168,12 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.8</version>
+		</dependency>
+
 		<!-- gate-core no longer need this, but if we remove it we break some plugins.
 		     Current solution is to mark it as runtime so it's not exposed directly
 		     if someone depends on gate-core. It's inclusion should be considered

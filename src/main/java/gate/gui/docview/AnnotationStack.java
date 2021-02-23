@@ -41,7 +41,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.MouseInputAdapter;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * Stack of annotations in a JPanel.
