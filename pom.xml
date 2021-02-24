@@ -71,7 +71,6 @@
 		<maven.resolver.version>1.6.1</maven.resolver.version>
 		<maven.version>3.6.3</maven.version>
 		<slf4j.version>1.7.30</slf4j.version>
-		<seal.commons.version>7.0.0-244</seal.commons.version>
 		<distributionHost>http://nexus.seal-software.net</distributionHost>
 	</properties>
 
