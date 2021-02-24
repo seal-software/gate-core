@@ -89,18 +89,48 @@
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-impl</artifactId>
 			<version>${maven.resolver.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-model-builder</artifactId>
 			<version>${maven.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-resolver-provider</artifactId>
 			<version>${maven.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.maven.resolver</groupId>
+					<artifactId>maven-resolver-impl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.maven.resolver</groupId>
+					<artifactId>maven-resolver-spi</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.maven.resolver</groupId>
+					<artifactId>maven-resolver-util</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.maven.resolver</groupId>
+					<artifactId>maven-resolver-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -132,6 +162,12 @@
 			<groupId>org.apache.maven.resolver</groupId>
 			<artifactId>maven-resolver-transport-wagon</artifactId>
 			<version>${maven.resolver.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.plexus</groupId>
+					<artifactId>plexus-utils</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -144,6 +180,12 @@
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-settings-builder</artifactId>
 			<version>${maven.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.plexus</groupId>
+					<artifactId>plexus-utils</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -172,6 +214,12 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
 			<version>1.8</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- gate-core no longer need this, but if we remove it we break some plugins.
