@@ -81,14 +81,12 @@ import gate.gui.MainFrame;
 import gate.resources.img.svg.AddIcon;
 import gate.resources.img.svg.AvailableIcon;
 import gate.resources.img.svg.DeleteIcon;
-import gate.resources.img.svg.GATEIcon;
+import gate.resources.img.svg.HelpIcon;
 import gate.resources.img.svg.InvalidIcon;
 import gate.resources.img.svg.MavenIcon;
 import gate.resources.img.svg.OpenFileIcon;
-import gate.resources.img.svg.RemotePluginIcon;
 import gate.resources.img.svg.RemoveIcon;
 import gate.resources.img.svg.SaveIcon;
-import gate.resources.img.svg.UserPluginIcon;
 import gate.swing.CheckBoxTableCellRenderer;
 import gate.swing.IconTableCellRenderer;
 import gate.swing.SpringUtilities;
@@ -118,8 +116,9 @@ public class AvailablePlugins extends JPanel {
   private JLabel lblPluginDetails;
   
   //buttons on the plugin toolbar, should also be ones for homepage/help etc.
-  private JButton btnResources;
+  private JButton btnResources, btnResourceHelp;
   private ExtractResourcesActionListener extractResourcesListener = new ExtractResourcesActionListener();
+  private ShowResourceHelpActionListener showResourceHelpListener = new ShowResourceHelpActionListener();
 
   private JTextField filterTextField;
 
@@ -227,8 +226,16 @@ public class AvailablePlugins extends JPanel {
     btnResources.setToolTipText("Extract Plugin Resources");
     btnResources.setEnabled(false);
     btnResources.addActionListener(extractResourcesListener);
-    
+
     pluginToolbar.add(btnResources);
+
+    btnResourceHelp = new JButton(new HelpIcon(32,32));
+    btnResourceHelp.setDisabledIcon(new HelpIcon(32,32,true));
+    btnResourceHelp.setToolTipText("Show Help for Selected Resource");
+    btnResourceHelp.setEnabled(false);
+    btnResourceHelp.addActionListener(showResourceHelpListener);
+
+    pluginToolbar.add(btnResourceHelp);
 
     JPanel pluginDisplay = new JPanel(new BorderLayout());
     pluginDisplay.add(lblPluginDetails, BorderLayout.NORTH);
@@ -251,6 +258,22 @@ public class AvailablePlugins extends JPanel {
                 }
               }
             });
+
+    resourcesList.getSelectionModel().addListSelectionListener(
+        new ListSelectionListener() {
+          @Override
+          public void valueChanged(ListSelectionEvent e) {
+            if (!e.getValueIsAdjusting()) {
+              ResourceInfo selected = resourcesList.getSelectedValue();
+              showResourceHelpListener.setResource(selected);
+
+              if (selected == null)
+                btnResourceHelp.setEnabled(false);
+              else
+                btnResourceHelp.setEnabled(resourcesList.getSelectedValue().getHelpURL() != null);
+            }
+          }
+    });
 
     // when typing a character in the table, use it for filtering
     mainTable.addKeyListener(new KeyAdapter() {
@@ -426,13 +449,10 @@ public class AvailablePlugins extends JPanel {
 
   private class MainTableModel extends AbstractTableModel {
 
-    private Icon coreIcon, userIcon, remoteIcon, otherIcon, invalidIcon, mavenIcon;
+    private Icon otherIcon, invalidIcon, mavenIcon;
 
     public MainTableModel() {
       otherIcon = new OpenFileIcon(32, 32);
-      coreIcon = new GATEIcon(32, 32);
-      userIcon = new UserPluginIcon(32, 32);
-      remoteIcon = new RemotePluginIcon(32, 32);
       invalidIcon = new InvalidIcon(32, 32);
       mavenIcon = new MavenIcon(32, 32);
     }
@@ -585,7 +605,10 @@ public class AvailablePlugins extends JPanel {
       fireContentsChanged(this, 0, getSize() - 1);
       lblPluginDetails.setText("");
       btnResources.setEnabled(false);
-      
+      btnResourceHelp.setEnabled(false);
+
+      resourcesList.clearSelection();
+
       int row = mainTable.getSelectedRow();
       if(row == -1) return;
       row = mainTable.rowViewToModel(row);
@@ -604,7 +627,25 @@ public class AvailablePlugins extends JPanel {
       lblPluginDetails.setText(details.toString());
     }
   }
-  
+
+  private class ShowResourceHelpActionListener implements ActionListener {
+    ResourceInfo resInfo = null;
+
+    public void setResource(ResourceInfo resInfo) {
+      this.resInfo = resInfo;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (resInfo == null) return;
+      if (resInfo.getHelpURL() == null) return;
+
+      MainFrame.getInstance().showHelpFrame(
+        resInfo.getHelpURL(),
+        resInfo.getResourceName());
+    }
+  }
+
   private class ExtractResourcesActionListener implements ActionListener {
 
     Plugin plugin = null;
@@ -896,14 +937,18 @@ public class AvailablePlugins extends JPanel {
         final Plugin plugin;
         if (tabsPluginType.getSelectedIndex() == 0) {
           plugin = new Plugin.Maven(txtGroup.getText().trim(), txtArtifact.getText().trim(), txtVersion.getText().trim());
-          //Gate.addKnownPlugin()(plugin);
+
+          // this ensures the name is properly calculated prior to
+          // adding it to the table model so the sorting should
+          // work properly rather than using the artifact name
+          plugin.getRequiredPlugins();
         }
         else {
           plugin = new Plugin.Directory(new URL(urlTextField.getText()));
-          //Gate.addKnownPlugin(new Plugin.Directory(creoleURL));
         }
+
         Gate.addKnownPlugin(plugin);
-        
+
         mainTable.clearSelection();
         // redisplay the table without filtering
         filterRows("");

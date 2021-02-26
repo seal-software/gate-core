@@ -13,12 +13,12 @@ pipeline {
 
     agent { docker {
         label 'medium'
-        image 'docker.seal-software.net/build-agent'
+        image 'docker.seal-software.net/build-agent-java11'
         args dockerArgs('--network="host"')
     }}
 
     environment {
-        VERSION = "8.7-SNAPSHOT_SEAL-${env.BUILD_NUMBER}"
+        VERSION = "9.0-SEAL-${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -44,9 +44,11 @@ pipeline {
         }
 
         stage('deploy') {
+            when {
+              branch 'master'
+            }
             steps {
-                echo('Not doing deploy any more, not sure if its needed')
-                // sh("mvn -B -Prelease -e deploy -Dmaven.test.skip=true")
+                sh("mvn -B -Prelease -e deploy -Dmaven.test.skip=true")
             }
         }
 

@@ -46,7 +46,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellEditor;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gate.Corpus;
 import gate.CorpusExporter;
@@ -67,6 +68,7 @@ import gate.swing.XJFileChooser;
 import gate.swing.XJMenu;
 import gate.util.Err;
 import gate.util.Files;
+import java.text.NumberFormat;
 
 /**
  * A menu which updates as plugins are (un)loaded to allow the export of
@@ -75,7 +77,7 @@ import gate.util.Files;
 @SuppressWarnings("serial")
 public class DocumentExportMenu extends XJMenu implements CreoleListener {
 
-  private static final Logger log = Logger.getLogger(DocumentExportMenu.class);
+  private static final Logger log = LoggerFactory.getLogger(DocumentExportMenu.class);
 
   static DocumentExportDialog dialog = new DocumentExportDialog();
 
@@ -297,9 +299,9 @@ public class DocumentExportMenu extends XJMenu implements CreoleListener {
                           }
   
                           MainFrame.lockGUI("Saving...");
-  
                           Corpus corpus = (Corpus)handle.getTarget();
   
+                          long startTime = System.currentTimeMillis();
                           // iterate through all the docs and save
                           // each of
                           // them
@@ -439,7 +441,11 @@ public class DocumentExportMenu extends XJMenu implements CreoleListener {
                             handle.progressChanged(100 * currentDocIndex++
                                     / docCnt);
                           }// while(docIter.hasNext())
-                          listener.statusChanged("Corpus Saved");
+                          long endTime = System.currentTimeMillis();
+                          listener.statusChanged("Corpus saved in "+ 
+                                  NumberFormat.getInstance().format(
+                                    (double)(endTime - startTime) / 1000)+
+                                  " seconds!");
                           handle.processFinished();
                         } finally {
                           MainFrame.unlockGUI();

@@ -6,7 +6,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import gate.util.GateRuntimeException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.apache.maven.settings.*;
 import org.apache.maven.settings.building.DefaultSettingsBuilder;
@@ -38,7 +39,7 @@ import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 public class Utils {
   
-  private static final Logger log = Logger.getLogger(Utils.class);
+  private static final Logger log = LoggerFactory.getLogger(Utils.class);
   
   public static final String userHome = System.getProperty("user.home");
 
@@ -137,7 +138,7 @@ public class Utils {
 
     RemoteRepository central =
             new RemoteRepository.Builder("central", "default",
-                    "http://repo1.maven.org/maven2/").build();
+                    "https://repo1.maven.org/maven2/").build();
 
     // Without this we wouldn't be able to find SNAPSHOT builds of plugins we
     // haven't built and installed locally ourselves

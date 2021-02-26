@@ -49,8 +49,6 @@ import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.building.DefaultModelBuilderFactory;
 import org.apache.maven.model.building.DefaultModelBuildingRequest;
@@ -83,6 +81,9 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import gate.Gate;
 import gate.Gate.ResourceInfo;
@@ -168,7 +169,7 @@ public abstract class Plugin {
     }
   }
 
-  protected static final Logger log = Logger.getLogger(Plugin.class);
+  protected static final Logger log = LoggerFactory.getLogger(Plugin.class);
   
   private static GenericVersionScheme versionScheme =
       new GenericVersionScheme();
@@ -403,10 +404,11 @@ public abstract class Plugin {
           String resName = currentElem.getChildTextTrim("NAME");
           String resClass = currentElem.getChildTextTrim("CLASS");
           String resComment = currentElem.getChildTextTrim("COMMENT");
+          String resHelpURL = currentElem.getChildText("HELPURL");
           if(!resInfos.containsKey(resClass)) {
             // create the handler
             ResourceInfo rHandler =
-                new ResourceInfo(resName, resClass, resComment);
+                new ResourceInfo(resName, resClass, resComment, resHelpURL);
             resInfos.put(resClass, rHandler);
           }
         } else if(currentElem.getName().equalsIgnoreCase("REQUIRES")) {
@@ -1080,7 +1082,7 @@ public abstract class Plugin {
       // we've found a CreoleResource annotation on this class
       if(desc.equals(CREOLE_RESOURCE_DESC)) {
         foundCreoleResource = true;
-        return new AnnotationVisitor(Opcodes.ASM5) {
+        return new AnnotationVisitor(Opcodes.ASM8) {
           @Override
           public void visit(String name, Object value) {
             if(name.equals("name") && resInfo.getResourceName() == null) {
@@ -1088,6 +1090,9 @@ public abstract class Plugin {
             } else if(name.equals("comment")
                 && resInfo.getResourceComment() == null) {
               resInfo.setResourceComment((String)value);
+            } else if (name.equals("helpURL")
+                && resInfo.getHelpURL() == null) {
+              resInfo.setHelpURL((String)value);
             }
           }
 

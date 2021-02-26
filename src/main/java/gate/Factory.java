@@ -46,7 +46,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides static methods for the creation of Resources.
@@ -57,7 +58,7 @@ public abstract class Factory {
 
   private static final boolean DEBUG_DUPLICATION = false;
 
-  private static final Logger log = Logger.getLogger(Factory.class);
+  private static final Logger log = LoggerFactory.getLogger(Factory.class);
 
   /** An object to source events from. */
   private static CreoleProxy creoleProxy;
@@ -522,7 +523,7 @@ public abstract class Factory {
   /**
    * Utility method to create an immutable annotation set. If the
    * provided collection of annotations is
-   * <code>null</null>, the newly created set will
+   * <code>null</code>, the newly created set will
    * be empty.
    * 
    * @param document the document this set belongs to.

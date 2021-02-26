@@ -35,6 +35,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -104,22 +105,22 @@ public class Files {
 
   /** Get a string representing the contents of a text file. */
   public static String getString(File textFile) throws IOException {
-    FileInputStream fis = new FileInputStream(textFile);
-    int len = (int) textFile.length();
-    byte[] textBytes = new byte[len];
-    fis.read(textBytes, 0, len);
-    fis.close();
-    return new String(textBytes);
+    try (FileInputStream fis = new FileInputStream(textFile);) {
+	    int len = (int) textFile.length();
+	    byte[] textBytes = new byte[len];
+	    fis.read(textBytes, 0, len);
+	    return new String(textBytes);
+    }
   } // getString(File)
 
   /** Get a byte array representing the contents of a binary file. */
   public static byte[] getByteArray(File binaryFile) throws IOException {
-    FileInputStream fis = new FileInputStream(binaryFile);
-    int len = (int) binaryFile.length();
-    byte[] bytes = new byte[len];
-    fis.read(bytes, 0, len);
-    fis.close();
-    return bytes;
+    try (FileInputStream fis = new FileInputStream(binaryFile)) {
+	    int len = (int) binaryFile.length();
+	    byte[] bytes = new byte[len];
+	    fis.read(bytes, 0, len);
+	    return bytes;
+    }
   } // getByteArray(File)
 
   /** Get a resource from the GATE ClassLoader as a String.
@@ -177,7 +178,7 @@ public class Files {
     if (resourceStream == null)
       throw new IOException("No such resource on classpath: " + resourceName);
     try {
-      return IOUtils.toString(resourceStream);
+      return IOUtils.toString(resourceStream, StandardCharsets.UTF_8);
     }
     finally {
       resourceStream.close();
@@ -367,7 +368,7 @@ public class Files {
   } // getResourceAsStream(String)
 
   /** Get a resource from the GATE resources directory as an InputStream.
-    * The resource name should be relative to <code>resourcePath<code> which
+    * The resource name should be relative to <code>resourcePath</code> which
     * is equal with <TT>gate/resources</TT>; e.g.
     * for a resource stored as <TT>gate/resources/jape/Test11.jape</TT>,
     * this method should be passed the name <TT>jape/Test11.jape</TT>.
@@ -409,7 +410,7 @@ public class Files {
    * Get a resource from the GATE resources directory.  The return value is a
    * {@link java.net.URL} that can be used to retrieve the contents of the
    * resource.
-   * The resource name should be relative to <code>resourcePath<code> which
+   * The resource name should be relative to <code>resourcePath</code> which
    * is equal with <TT>gate/resources</TT>; e.g.
    * for a resource stored as <TT>gate/resources/jape/Test11.jape</TT>,
    * this method should be passed the name <TT>jape/Test11.jape</TT>.

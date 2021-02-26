@@ -37,8 +37,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
-
 import gate.util.reporting.exceptions.BenchmarkReportExecutionException;
 import gate.util.reporting.exceptions.BenchmarkReportInputFileFormatException;
 import gnu.getopt.Getopt;
@@ -156,7 +154,7 @@ public class PRTimeReporter implements BenchmarkReportable {
    * @param inputFile
    *          A File handle of the input log file.
    *
-   * @return An Object of type LinkedHashMap<String, Object> containing the
+   * @return An Object of type LinkedHashMap&lt;String, Object&gt; containing the
    *         processing elements (with time in milliseconds) in hierarchical
    *         structure. Null if there was an error.
    */
@@ -395,8 +393,8 @@ public class PRTimeReporter implements BenchmarkReportable {
         Iterator<String> keyIt = mapKeys.iterator();
         while (keyIt.hasNext()) {
           String key = keyIt.next();
-          String comp1 = passedMap.get(key).toString();
-          String comp2 = val.toString();
+          String comp1 = passedMap.get(key);
+          String comp2 = val;
 
           if (comp1.equals(comp2)) {
             passedMap.remove(key);
@@ -413,7 +411,7 @@ public class PRTimeReporter implements BenchmarkReportable {
    * Calculates the sub totals at each level.
    *
    * @param reportContainer
-   *          An Object of type LinkedHashMap<String, Object> containing the
+   *          An Object of type LinkedHashMap&lt;String, Object&gt; containing the
    *          processing elements (with time in milliseconds) in hierarchical
    *          structure.
    *
@@ -483,7 +481,7 @@ public class PRTimeReporter implements BenchmarkReportable {
    * Prints a report as per the value provided for print media option.
    *
    * @param reportSource
-   *          An Object of type LinkedHashMap<String, Object> containing the
+   *          An Object of type LinkedHashMap&lt;String, Object&gt; containing the
    *          processing elements (with time in milliseconds) in hierarchical
    *          structure.
    * @param outputFile
@@ -835,9 +833,7 @@ public class PRTimeReporter implements BenchmarkReportable {
    */
   private long tail(File fileToBeRead, int chunkSize)
       throws BenchmarkReportInputFileFormatException {
-    RandomAccessFile raf = null;
-    try {
-      raf = new RandomAccessFile(fileToBeRead, "r");
+    try (RandomAccessFile raf = new RandomAccessFile(fileToBeRead, "r")){
       Vector<String> lastNlines = new Vector<String>();
       int delta = 0;
       long curPos = raf.length() - 1;
@@ -877,9 +873,6 @@ public class PRTimeReporter implements BenchmarkReportable {
     } catch (IOException e) {
       e.printStackTrace();
       return -1;
-    }
-    finally {
-      IOUtils.closeQuietly(raf);
     }
   }
 

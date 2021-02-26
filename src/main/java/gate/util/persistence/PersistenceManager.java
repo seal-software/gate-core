@@ -53,7 +53,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.reflection.FieldDictionary;
@@ -102,6 +103,8 @@ import gate.util.NameBearer;
 public class PersistenceManager {
 
   private static final boolean DEBUG = false;
+
+  private static final XStream xstream;
 
   /**
    * A reference to an object; it uses the identity hashcode and the
@@ -245,7 +248,7 @@ public class PersistenceManager {
    * gate.user.resourceshome is set to a directory path and the URL refers 
    * to a resource inside this directory, the relative path to this directory
    * will be stored.
-   * <ul>
+   * </ul>
    * If resources are stored relative to gate home or
    * resources home, a warning will also be logged.
    * <p>
@@ -258,7 +261,7 @@ public class PersistenceManager {
    * result of the normalization is checked using getCanonicalPath() to see if it refers to 
    * the same location as the non-normalized one (it could be different if the .. follows a
    * symbolic link, for example). If it is the same, then the normalized version is used, otherwise
-   * the original version is used. 
+   * the original version is used.</p> 
    * 
    */
   public static class URLHolder implements Persistence {
@@ -266,7 +269,7 @@ public class PersistenceManager {
      * Populates this Persistence with the data that needs to be stored
      * from the original source object.
      */
-    static final Logger logger = Logger.getLogger(URLHolder.class);
+    static final Logger logger = LoggerFactory.getLogger(URLHolder.class);
     
     public static String relativize(File outFile, File urlFile) throws URISyntaxException {
           
@@ -1031,23 +1034,14 @@ public class PersistenceManager {
     // The object output stream is used for native serialization,
     // but the xstream and filewriter are used for XML serialization.
     ObjectOutputStream oos = null;
-    com.thoughtworks.xstream.XStream xstream = null;
     HierarchicalStreamWriter writer = null;
     warnAboutGateHome.get().addFirst(warnaboutgatehome);
     useGateHome.get().addFirst(usegatehome);
     startPersistingTo(file);
     try {
       if(Gate.getUseXMLSerialization()) {
-        // Just create the xstream and the filewriter that will later be
+        // Just create the filewriter that will later be
         // used to serialize objects.
-        xstream = new XStream(
-          new SunUnsafeReflectionProvider(new FieldDictionary(new XStream12FieldKeySorter())),
-          new StaxDriver(new XStream11NameCoder())) {
-          @Override
-          protected boolean useXStream11XmlFriendlyMapper() {
-            return true;
-          }
-        };
         FileWriter fileWriter = new FileWriter(file);
         writer = new PrettyPrintWriter(fileWriter,
             new XmlFriendlyNameCoder("-", "_"));
@@ -1156,7 +1150,11 @@ public class PersistenceManager {
   public static Object loadObjectFromFile(File file)
           throws PersistenceException, IOException,
           ResourceInstantiationException {
-    return loadObjectFromUrl(file.toURI().toURL());
+    try {
+	  return loadObjectFromUri(file.toURI());
+    } catch (URISyntaxException e) {
+	  throw new PersistenceException(e);
+    }
   }
 
   public static Object loadObjectFromUrl(URL url) throws PersistenceException,
@@ -1196,7 +1194,6 @@ public class PersistenceManager {
       boolean xmlStream = isXmlApplicationFile(resourceReference.toURL());
       ObjectInputStream ois = null;
       HierarchicalStreamReader reader = null;
-      XStream xstream = null;
       // Make the appropriate kind of streams that will be used, depending
       // on
       // whether serialization is native or xml.
@@ -1217,14 +1214,6 @@ public class PersistenceManager {
           throw new PersistenceException("Error creating reader", xse);
         }
 
-        xstream = new XStream(new StaxDriver(new XStream11NameCoder())) {
-          @Override
-          protected boolean useXStream11XmlFriendlyMapper() {
-            return true;
-          }
-        };
-        // make XStream load classes through the GATE ClassLoader
-        xstream.setClassLoader(Gate.getClassLoader());
         // make the XML stream appear as a normal ObjectInputStream
         ois = xstream.createObjectInputStream(reader);
       }
@@ -1466,6 +1455,20 @@ public class PersistenceManager {
   
   
   static {
+
+    xstream = new XStream(new SunUnsafeReflectionProvider(new FieldDictionary(new XStream12FieldKeySorter())),
+        new StaxDriver(new XStream11NameCoder())) {
+            @Override
+            protected boolean useXStream11XmlFriendlyMapper() {
+                return true;
+            }
+        };
+
+    // make XStream load classes through the GATE ClassLoader
+    xstream.setClassLoader(Gate.getClassLoader());
+
+    Gate.configureXStreamSecurity(xstream);
+
     persistentReplacementTypes = new HashMap<Class<?>, Class<?>>();
     try {
       // VRs don't get saved, ....sorry guys :)

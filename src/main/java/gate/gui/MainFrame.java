@@ -49,7 +49,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -60,7 +64,21 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,7 +121,6 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.OverlayLayout;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
@@ -124,12 +141,16 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import gate.swing.*;
-import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.codehaus.httpcache4j.HTTPRequest;
+import org.codehaus.httpcache4j.cache.CacheStorage;
+import org.codehaus.httpcache4j.cache.FilePersistentCacheStorage;
+import org.codehaus.httpcache4j.cache.HTTPCache;
+import org.codehaus.httpcache4j.cache.NullCacheStorage;
+import org.codehaus.httpcache4j.payload.Payload;
+import org.codehaus.httpcache4j.resolver.ConnectionConfiguration;
+import org.codehaus.httpcache4j.resolver.JavaNetResponseResolver;
 
 import gate.Controller;
 import gate.CreoleRegister;
@@ -162,11 +183,18 @@ import gate.gui.creole.manager.PluginUpdateManager;
 import gate.persist.PersistenceException;
 import gate.resources.img.svg.AvailableIcon;
 import gate.resources.img.svg.GATEIcon;
+import gate.resources.img.svg.GATENameIcon;
 import gate.resources.img.svg.GATEVersionIcon;
 import gate.resources.img.svg.ReadyMadeIcon;
+import gate.swing.JMenuButton;
+import gate.swing.ResourceReferenceChooser;
+import gate.swing.XJFileChooser;
+import gate.swing.XJMenu;
+import gate.swing.XJMenuItem;
+import gate.swing.XJPopupMenu;
+import gate.swing.XJTabbedPane;
 import gate.util.Benchmark;
 import gate.util.CorpusBenchmarkTool;
-import gate.util.Files;
 import gate.util.GateClassLoader;
 import gate.util.GateException;
 import gate.util.GateRuntimeException;
@@ -178,14 +206,6 @@ import gate.util.persistence.UpgradeXGAPP;
 import gate.util.reporting.DocTimeReporter;
 import gate.util.reporting.PRTimeReporter;
 import gate.util.reporting.exceptions.BenchmarkReportException;
-import org.codehaus.httpcache4j.HTTPRequest;
-import org.codehaus.httpcache4j.cache.CacheStorage;
-import org.codehaus.httpcache4j.cache.FilePersistentCacheStorage;
-import org.codehaus.httpcache4j.cache.HTTPCache;
-import org.codehaus.httpcache4j.cache.NullCacheStorage;
-import org.codehaus.httpcache4j.payload.Payload;
-import org.codehaus.httpcache4j.resolver.ConnectionConfiguration;
-import org.codehaus.httpcache4j.resolver.JavaNetResponseResolver;
 
 /**
  * The main Gate GUI frame.
@@ -194,7 +214,7 @@ import org.codehaus.httpcache4j.resolver.JavaNetResponseResolver;
 public class MainFrame extends JFrame implements ProgressListener,
                                      StatusListener, CreoleListener, PluginListener {
 
-  protected static final Logger log = Logger.getLogger(MainFrame.class);
+  protected static final Logger log = LoggerFactory.getLogger(MainFrame.class);
   
   public static final Dimension ICON_DIMENSION = new Dimension(24, 24);
 
@@ -760,7 +780,7 @@ public class MainFrame extends JFrame implements ProgressListener,
     constraints.gridy = 2;
     constraints.gridwidth = 2;
     constraints.fill = GridBagConstraints.HORIZONTAL;
-    String splashHtml;
+    /*String splashHtml;
     try {
       splashHtml = Files.getGateResourceAsString("splash.html");
     }
@@ -770,19 +790,22 @@ public class MainFrame extends JFrame implements ProgressListener,
     }
     JLabel htmlLbl = new JLabel(splashHtml);
     htmlLbl.setHorizontalAlignment(SwingConstants.CENTER);
-    splashBox.add(htmlLbl, constraints);
+    splashBox.add(htmlLbl, constraints);*/
 
-    constraints.gridy = 3;
-    htmlLbl =
-      new JLabel("<HTML><FONT color=\"blue\">Version <B>" + Gate.VERSION_STRING
+    //constraints.gridy = 3;
+    JLabel htmlLbl =
+      new JLabel("<HTML>"
+        +"<p><FONT color=\"blue\">GATE <B>" + Gate.VERSION_STRING
         + "</B></FONT>" + ", <FONT color=\"red\">build <B>" + Gate.BUILD
-        + "</B></FONT>" + "<P><B>JVM version</B>: "
+        + "</B></FONT>" + "</p><p>Developed at The University of Sheffield.</p>"
+        +"<p>Distributed under the GNU Lesser General Public License v3</p>"
+        +"<P><B>Running on Java</B> "
         + System.getProperty("java.version") + " from "
-        + System.getProperty("java.vendor") + "</HTML>");
+        + System.getProperty("java.vendor") + "</P></HTML>");
     constraints.fill = GridBagConstraints.HORIZONTAL;
     splashBox.add(htmlLbl, constraints);
 
-    constraints.gridy = 4;
+    constraints.gridy = 3;
     constraints.gridwidth = 2;
     constraints.fill = GridBagConstraints.NONE;
     final JButton okButton = new JButton("OK");
@@ -953,7 +976,7 @@ public class MainFrame extends JFrame implements ProgressListener,
             // store old value of benchmark switch
             benchmarkWasEnabled = Benchmark.isBenchmarkingEnabled();
             Benchmark.setBenchmarkingEnabled(true);
-            Layout layout = new PatternLayout("%m%n");
+            /*Layout layout = new PatternLayout("%m%n");
             File logFile = new File(System.getProperty("java.io.tmpdir"),
               "gate-benchmark-log.txt");
             logFile.deleteOnExit();
@@ -966,7 +989,7 @@ public class MainFrame extends JFrame implements ProgressListener,
               return;
             }
             appender.setName("gate-benchmark");
-            Benchmark.logger.addAppender(appender);
+            Benchmark.logger.addAppender(appender);*/
             putValue(NAME, "Stop Profiling Applications");
           } else {
             // reset old value of benchmark switch - i.e. if benchmarking was
@@ -975,7 +998,7 @@ public class MainFrame extends JFrame implements ProgressListener,
             // started profiling then we assume it was turned on explicitly and
             // leave it alone.
             Benchmark.setBenchmarkingEnabled(benchmarkWasEnabled);
-            Benchmark.logger.removeAppender("gate-benchmark");
+            //Benchmark.logger.removeAppender("gate-benchmark");
             putValue(NAME, "Start Profiling Applications");
             reportClearMenuItem.setEnabled(true);
           }
@@ -1164,13 +1187,13 @@ public class MainFrame extends JFrame implements ProgressListener,
         showHelpFrame("chap:developer", "Using GATE Developer");
       }
     }, this));
-    helpMenu.add(new XJMenuItem(new AbstractAction("Demo Movies") {
+    /*helpMenu.add(new XJMenuItem(new AbstractAction("Demo Movies") {
       { this.putValue(Action.SHORT_DESCRIPTION, "Movie tutorials"); }
       @Override
       public void actionPerformed(ActionEvent e) {
         showHelpFrame("http://gate.ac.uk/demos/developer-videos/", "movies");
       }
-    }, this));
+    }, this));*/
     //helpMenu.add(new XJMenuItem(new HelpMailingListAction(), this));
     helpMenu.addSeparator();
     JCheckBoxMenuItem toggleToolTipsCheckBoxMenuItem =
@@ -1230,19 +1253,14 @@ public class MainFrame extends JFrame implements ProgressListener,
     toolbar.add(button);
     toolbar.addSeparator();
 
-    try {
-      JButton annieMenu =
+    JButton annieMenu =
           new JButton(new LoadApplicationAction("ANNIE", "annie-application",
-              new ResourceReference(new URI(
-                  "creole://uk.ac.gate.plugins;annie;" + gate.Main.version + "/resources/"
-                      + ANNIEConstants.DEFAULT_FILE))));
-      annieMenu.setText("");
-      annieMenu.setToolTipText("Load ANNIE");
-      toolbar.add(annieMenu);
-      toolbar.addSeparator();
-    } catch(URISyntaxException e) {
-      // should be impossible
-    }
+              "uk.ac.gate.plugins","annie","/resources/"
+                      + ANNIEConstants.DEFAULT_FILE));
+    annieMenu.setText("");
+    annieMenu.setToolTipText("Load ANNIE");
+    toolbar.add(annieMenu);
+    toolbar.addSeparator();
 
     LiveMenu tbNewLRMenu = new LiveMenu(LiveMenu.LR);
     JMenuButton menuButton = new JMenuButton(tbNewLRMenu);
@@ -1560,8 +1578,8 @@ public class MainFrame extends JFrame implements ProgressListener,
           if (menuLocation == null) {
             // menu location at the bottom left of the JTable or JTree
             menuLocation = new Point(
-              new Double(selectionRectangle.getMinX()+1).intValue(),
-              new Double(selectionRectangle.getMaxY()-1).intValue());
+              (int)(selectionRectangle.getMinX()+1),
+              (int)(selectionRectangle.getMaxY()-1));
           }
 
           // generate a right/button 3/popup menu mouse click
@@ -2863,6 +2881,8 @@ public class MainFrame extends JFrame implements ProgressListener,
     
     private ResourceReference pipelineURL = null;
 
+    private String group, artifact, path;
+
     public LoadApplicationAction(ResourceData rData, ResourceReference pipelineURL) {
       super(rData.getName(),MainFrame.getIcon(rData.getIcon(),rData.getResourceClassLoader()));
       if (getValue(Action.SMALL_ICON) == null) putValue(Action.SMALL_ICON, MainFrame.getIcon("application"));
@@ -2878,11 +2898,50 @@ public class MainFrame extends JFrame implements ProgressListener,
       this.pipelineURL = pipelineURL;
       this.icon = icon;
     }
-        
+
+    public LoadApplicationAction(String name, String icon, String group, String artifact, String path) {
+    	super(name,MainFrame.getIcon(icon));
+        if (getValue(Action.SMALL_ICON) == null) putValue(Action.SMALL_ICON, MainFrame.getIcon("application"));
+        this.name = name;
+        this.icon = icon;
+        this.group = group;
+        this.artifact = artifact;
+        this.path = path;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
+      if (group != null &&  artifact != null || path != null) {
+    	  // we need to locate the relevant Mavnen plugin first
+    	  pipelineURL = null;
+
+    	  Set<Plugin> allPlugins = new LinkedHashSet<Plugin>(Gate.getCreoleRegister().getPlugins());
+    	  allPlugins.addAll(PluginUpdateManager.getDefaultPlugins());
+
+          if (allPlugins.isEmpty()) {
+            System.err.println("No plugins are currently known to GATE, so we cannot load the requested application.\n"+
+            "If this is the first time you have opened GATE please wait a minute, while we build the cache of known plugins, and then try again.");
+          }
+
+    	  for (Plugin plugin : allPlugins) {
+    		  if (plugin instanceof Plugin.Maven) {
+    			  Plugin.Maven mp = (Plugin.Maven)plugin;
+
+    			  if (mp.getGroup().equals(group) && mp.getArtifact().equals(artifact)) {
+    				  try {
+						pipelineURL = new ResourceReference(plugin, path);
+						break;
+					} catch (URISyntaxException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+    			  }
+    		  }
+    	  }
+      }
+
       if (pipelineURL == null) {
-        System.err.println("The URL of the application has not been correctly set and cannot be loaded.");
+        System.err.println("The URL of the application does not point to a known plugin and so cannot be loaded.");
         return;
       }
       
@@ -4341,8 +4400,19 @@ public class MainFrame extends JFrame implements ProgressListener,
             @Override
             public void actionPerformed(ActionEvent e) {
               try {
-                Plugin anniePlugin = new Plugin.Maven("uk.ac.gate.plugins", "annie", Main.version);
-                Gate.getCreoleRegister().registerPlugin(anniePlugin);
+            	  for (Plugin plugin : PluginUpdateManager.getDefaultPlugins()) {
+              		if (plugin instanceof Plugin.Maven) {
+              			Plugin.Maven mp = (Plugin.Maven)plugin;
+
+              			if (mp.getGroup().equals("uk.ac.gate.plugins") && mp.getArtifact().equals("annie")) {
+              				Gate.getCreoleRegister().registerPlugin(plugin);
+              				return;
+              			}
+
+              		}
+            	  }
+
+            	  log.error("Unable to find ANNIE plugin, please use the plugin manager");
               } catch(Exception ex) {
                 log.error("Unable to load ANNIE plugin.", ex);
               }
@@ -4817,7 +4887,7 @@ public class MainFrame extends JFrame implements ProgressListener,
   class HelpAboutAction extends AbstractAction {
     private static final long serialVersionUID = 1L;
     public HelpAboutAction() {
-      super("About");
+      super("About...");
       putValue(SHORT_DESCRIPTION, "Show developers names and version");
     }
 
@@ -5059,7 +5129,8 @@ public class MainFrame extends JFrame implements ProgressListener,
       super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row,
         hasFocus);
       if(value == resourcesTreeRoot) {
-        setIcon(MainFrame.getIcon("GATE"));
+        setIcon(new GATENameIcon(73,24));
+        setText(null);
         setToolTipText("Resources tree root ");
       }
       else if(value == applicationsRoot) {
@@ -5318,18 +5389,15 @@ public class MainFrame extends JFrame implements ProgressListener,
       super("Ready Made Applications");
       setIcon(new ReadyMadeIcon(24, 24));
 
-      try {
         annie = new XJMenuItem(
             new LoadApplicationAction("ANNIE", "annie-application",
-                new ResourceReference(
-                    new URI("creole://uk.ac.gate.plugins;annie;" + gate.Main.version + "/resources/"
-                        + ANNIEConstants.DEFAULT_FILE))),
+                "uk.ac.gate.plugins","annie", "/resources/"
+                        + ANNIEConstants.DEFAULT_FILE),
             MainFrame.this);
         
         openNLP = new XJMenuItem(
             new LoadApplicationAction("OpenNLP (English)", "application",
-                new ResourceReference(
-                    new URI("creole://uk.ac.gate.plugins;opennlp;" + gate.Main.version + "/resources/opennlp.gapp"))),
+                "uk.ac.gate.plugins","opennlp","/resources/opennlp.gapp"),
             MainFrame.this);
 
         addMenuListener(new MenuListener() {
@@ -5349,9 +5417,6 @@ public class MainFrame extends JFrame implements ProgressListener,
             menuDeselected(e);
           }
         });
-      } catch(URISyntaxException e) {
-        throw new RuntimeException(e);
-      }
 
       // rebuild the menu when resources are added or removed
       Gate.getCreoleRegister().addCreoleListener(new CreoleListener() {

@@ -922,9 +922,9 @@ public class AnnotationSetsView extends AbstractDocumentView
           return value;
         case SELECTED_COL:
           if(value instanceof SetHandler)
-            return new Boolean(((SetHandler)value).isExpanded());
+            return ((SetHandler)value).isExpanded();
           if(value instanceof TypeHandler) 
-            return new Boolean(((TypeHandler)value).isSelected());
+            return ((TypeHandler)value).isSelected();
           return null;
         default:
           return null;
@@ -1192,7 +1192,7 @@ public class AnnotationSetsView extends AbstractDocumentView
     
     @Override
     public Object getCellEditorValue(){
-      return new Boolean(currentChk.isSelected());
+      return currentChk.isSelected();
     }
     
     @Override
@@ -2241,7 +2241,7 @@ public class AnnotationSetsView extends AbstractDocumentView
   /**
    * Stores the list of visible annotation types when the view is inactivated 
    * so that the selection can be restored when the view is made active again.
-   * The values are String[2] pairs of form <set name, type>.
+   * The values are String[2] pairs of form &lt;set name, type&gt;.
    */
   protected BlockingQueue<TypeSpec> visibleAnnotationTypes;
   

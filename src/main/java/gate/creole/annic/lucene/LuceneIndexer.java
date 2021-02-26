@@ -14,13 +14,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
+import gate.Corpus;
 import gate.creole.annic.Constants;
 import gate.creole.annic.IndexException;
 import gate.creole.annic.Indexer;
@@ -31,7 +31,6 @@ import gate.creole.annic.apache.lucene.index.Term;
 import gate.creole.annic.apache.lucene.search.Hits;
 import gate.creole.annic.apache.lucene.search.IndexSearcher;
 import gate.creole.annic.apache.lucene.search.TermQuery;
-import gate.Corpus;
 import gate.util.Files;
 
 /**
@@ -308,7 +307,7 @@ public class LuceneIndexer implements Indexer {
    * @param removedIDs - when documents are not
    *          peristed, Persistence IDs will not be available In that
    *          case provide the document Names instead of their IDs
-   * @throws Exception
+   * @throws IndexException if an error occurs while removing documents
    */
   @Override
   public void remove(List<Object> removedIDs) throws IndexException {
