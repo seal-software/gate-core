@@ -35,6 +35,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -177,7 +178,7 @@ public class Files {
     if (resourceStream == null)
       throw new IOException("No such resource on classpath: " + resourceName);
     try {
-      return IOUtils.toString(resourceStream,Charset.defaultCharset().name());
+      return IOUtils.toString(resourceStream, StandardCharsets.UTF_8);
     }
     finally {
       resourceStream.close();
