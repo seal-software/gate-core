@@ -44,9 +44,11 @@ pipeline {
         }
 
         stage('deploy') {
+            when {
+              branch 'master'
+            }
             steps {
-                echo('Not doing deploy any more, not sure if its needed')
-                // sh("mvn -B -Prelease -e deploy -Dmaven.test.skip=true")
+                sh("mvn -B -Prelease -e deploy -Dmaven.test.skip=true")
             }
         }
 
