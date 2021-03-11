@@ -185,13 +185,13 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
   
   @Override
   public void clear() {
-    // while nullifying the indexes does clear the set it doesn't fire the
-    // appropriate events so use the Iterator based clear implementation in
-    // AbstractSet.clear() first and then reset the indexes
-    super.clear();
+
+    annotsById.values().forEach(annotation -> fireAnnotationRemoved(new AnnotationSetEvent(AnnotationSetImpl.this,
+            AnnotationSetEvent.ANNOTATION_REMOVED, getDocument(),
+            annotation)));
     
     //reset all the indexes to be sure everything has been cleared correctly
-    annotsById = new HashMap<Integer, Annotation>();
+    annotsById.clear();
     nodesByOffset = null;
     annotsByStartNode = null;
     annotsByType = null;
@@ -202,11 +202,11 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    * This inner class serves as the return value from the iterator() method.
    */
   class AnnotationSetIterator implements Iterator<Annotation> {
-    private Iterator<Annotation> iter;
-    protected Annotation lastNext = null;
+    private Iterator<Map.Entry<Integer, Annotation>> iter;
+    protected Map.Entry<Integer, Annotation> lastNext = null;
 
     AnnotationSetIterator() {
-      iter = annotsById.values().iterator();
+      iter = annotsById.entrySet().iterator();
     }
 
     @Override
@@ -216,7 +216,8 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
 
     @Override
     public Annotation next() {
-      return (lastNext = iter.next());
+      lastNext = iter.next();
+      return lastNext.getValue();
     }
 
     @Override
@@ -228,14 +229,14 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
       if(lastNext == null) return;
 
       // remove from type index
-      removeFromTypeIndex(lastNext);
+      removeFromTypeIndex(lastNext.getValue());
       // remove from offset indices
-      removeFromOffsetIndex(lastNext);
+      removeFromOffsetIndex(lastNext.getValue());
       // that's the second way of removing annotations from a set
       // apart from calling remove() on the set itself
       fireAnnotationRemoved(new AnnotationSetEvent(AnnotationSetImpl.this,
               AnnotationSetEvent.ANNOTATION_REMOVED, getDocument(),
-              lastNext));
+              lastNext.getValue()));
     } // remove()
   }; // AnnotationSetIterator
 
