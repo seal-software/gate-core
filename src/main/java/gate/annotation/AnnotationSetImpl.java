@@ -185,17 +185,19 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
   
   @Override
   public void clear() {
-    // while nullifying the indexes does clear the set it doesn't fire the
-    // appropriate events so use the Iterator based clear implementation in
-    // AbstractSet.clear() first and then reset the indexes
-    super.clear();
-    
+
+    List<Annotation> annotations = new ArrayList<>(annotsById.values());
+
     //reset all the indexes to be sure everything has been cleared correctly
-    annotsById = new HashMap<Integer, Annotation>();
+    annotsById.clear();
     nodesByOffset = null;
     annotsByStartNode = null;
     annotsByType = null;
     longestAnnot = 0l;
+
+    annotations.forEach(annotation -> fireAnnotationRemoved(new AnnotationSetEvent(AnnotationSetImpl.this,
+            AnnotationSetEvent.ANNOTATION_REMOVED, getDocument(),
+            annotation)));
   }
 
   /**
