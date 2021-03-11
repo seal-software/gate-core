@@ -202,11 +202,11 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    * This inner class serves as the return value from the iterator() method.
    */
   class AnnotationSetIterator implements Iterator<Annotation> {
-    private Iterator<Map.Entry<Integer, Annotation>> iter;
-    protected Map.Entry<Integer, Annotation> lastNext = null;
+    private Iterator<Annotation> iter;
+    protected Annotation lastNext = null;
 
     AnnotationSetIterator() {
-      iter = annotsById.entrySet().iterator();
+      iter = annotsById.values().iterator();
     }
 
     @Override
@@ -216,8 +216,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
 
     @Override
     public Annotation next() {
-      lastNext = iter.next();
-      return lastNext.getValue();
+      return (lastNext = iter.next());
     }
 
     @Override
@@ -229,14 +228,14 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
       if(lastNext == null) return;
 
       // remove from type index
-      removeFromTypeIndex(lastNext.getValue());
+      removeFromTypeIndex(lastNext);
       // remove from offset indices
-      removeFromOffsetIndex(lastNext.getValue());
+      removeFromOffsetIndex(lastNext);
       // that's the second way of removing annotations from a set
       // apart from calling remove() on the set itself
       fireAnnotationRemoved(new AnnotationSetEvent(AnnotationSetImpl.this,
               AnnotationSetEvent.ANNOTATION_REMOVED, getDocument(),
-              lastNext.getValue()));
+              lastNext));
     } // remove()
   }; // AnnotationSetIterator
 
