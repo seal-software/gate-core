@@ -1143,7 +1143,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
         newCollection.add(a);
       }
     }
-  } // addToStartOffsetIndex(a)
+  } // addToOffsetIndex(a)
 
   /**
    * Propagate document content changes to this AnnotationSet. 
