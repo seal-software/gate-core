@@ -295,14 +295,14 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
       // get all the annotations (ignoring the one we are removing that start at the same node
 
       Set<Annotation> tmp = new HashSet<>();
-      tmp.addAll(getAnnotationsStartingAtOffset(a.getStartNode().getOffset()));
+      tmp.addAll(getStartingAt(a.getStartNode().getOffset()));
       tmp.remove(a);
 
       if (tmp.size() == 0) {
         // if there aren't any then we may need to remove the node, but let's
         // double check there aren't any annotations that end where this one
         // starts
-        tmp.addAll(getAnnotationsEndingAtOffset(a.getStartNode().getOffset()));
+        tmp.addAll(getEndingAt(a.getStartNode().getOffset()));
         tmp.remove(a);
 
         if (tmp.size() == 0) {
@@ -315,11 +315,11 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
       // repeat the logic above but for the node at the end of the annotation we
       // want to remove from the set
       tmp = new HashSet<>();
-      tmp.addAll(getAnnotationsStartingAtOffset(a.getEndNode().getOffset()));
+      tmp.addAll(getStartingAt(a.getEndNode().getOffset()));
       tmp.remove(a);
 
       if (tmp.size() == 0) {
-        tmp.addAll(getAnnotationsEndingAtOffset(a.getEndNode().getOffset()));
+        tmp.addAll(getEndingAt(a.getEndNode().getOffset()));
         tmp.remove(a);
 
         if (tmp.size() == 0) {
@@ -527,47 +527,6 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
     }
     return new ImmutableAnnotationSetImpl(doc, annotationsToAdd);
   }
-
-  /**
-   * Get all annotations starting at a specific offset
-   * @param offset start position for annotation
-   * @return a set of annotations
-   */
-  private AnnotationSet getAnnotationsStartingAtOffset(Long offset) {
-    if(annotsByStartNode == null) {
-      indexByOffsets();
-    }
-
-    Node nextNode = nodesByOffset.get(offset);
-    if(nextNode == null) {// no nodes at or beyond this offset
-      return emptyAS();
-    }
-    Collection<Annotation> annotationsToAdd = getAnnotsByStartNode(nextNode
-            .getId());
-
-    return new ImmutableAnnotationSetImpl(doc, annotationsToAdd);
-  }
-
-  /**
-   * Get all annotations ending at a specific offset
-   * @param offset end position for annotation
-   * @return a set of annotations
-   */
-  private AnnotationSet getAnnotationsEndingAtOffset(Long offset) {
-    if(annotsByEndNode == null) {
-      indexByOffsets();
-    }
-
-    Node nextNode = nodesByOffset.get(offset);
-    if(nextNode == null) {// no nodes at or beyond this offset
-      return emptyAS();
-    }
-    Collection<Annotation> annotationsToAdd = getAnnotsByEndNode(nextNode
-            .getId());
-
-    return new ImmutableAnnotationSetImpl(doc, annotationsToAdd);
-  }
-
   
   /**
    * Select annotations by offset. This returns the set of annotations that
@@ -586,6 +545,26 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
       return emptyAS();
     }
     return new ImmutableAnnotationSetImpl(doc, getAnnotsByStartNode(node.getId()));
+  }
+
+  /**
+   * Get all annotations ending at a specific offset
+   * @param offset end position for annotation
+   * @return a set of annotations
+   */
+  private AnnotationSet getEndingAt(Long offset) {
+    if(annotsByEndNode == null) {
+      indexByOffsets();
+    }
+
+    Node nextNode = nodesByOffset.get(offset);
+    if(nextNode == null) {
+      return emptyAS();
+    }
+    Collection<Annotation> annotationsToAdd = getAnnotsByEndNode(nextNode
+            .getId());
+
+    return new ImmutableAnnotationSetImpl(doc, annotationsToAdd);
   }
   
   /**
