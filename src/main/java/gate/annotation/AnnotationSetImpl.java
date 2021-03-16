@@ -510,7 +510,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    */
   @Override
   public AnnotationSet get(Long offset) {
-    if(annotsByStartNode == null) indexByStartOffset();
+    if(annotsByStartNode == null) indexByOffsets();
     // find the next node at or after offset; get the annots starting
     // there
     Node nextNode = nodesByOffset.getNextOf(offset);
@@ -535,7 +535,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    */
   private AnnotationSet getAnnotationsStartingAtOffset(Long offset) {
     if(annotsByStartNode == null) {
-      indexByStartOffset();
+      indexByOffsets();
     }
 
     Node nextNode = nodesByOffset.get(offset);
@@ -555,7 +555,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    */
   private AnnotationSet getAnnotationsEndingAtOffset(Long offset) {
     if(annotsByEndNode == null) {
-      indexByStartOffset();
+      indexByOffsets();
     }
 
     Node nextNode = nodesByOffset.get(offset);
@@ -580,7 +580,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    *   offset (possibly empty).
    */
   public AnnotationSet getStartingAt(long offset) {
-    if(annotsByStartNode == null) indexByStartOffset();
+    if(annotsByStartNode == null) indexByOffsets();
     Node node = nodesByOffset.get(offset);
     if(node == null) { // no nodes at or beyond this offset
       return emptyAS();
@@ -598,7 +598,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    */
   @Override
   public List<Annotation> inDocumentOrder() {
-    if(annotsByStartNode == null) indexByStartOffset();
+    if(annotsByStartNode == null) indexByOffsets();
     Collection<Node> values = nodesByOffset.values();
     List<Annotation> result = new ArrayList<Annotation>();
     for(Node nodeObj : values) {
@@ -636,7 +636,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
   public AnnotationSet getStrict(Long startOffset, Long endOffset) {
     // the result will include all the annotations that
     // start at the start offset and end strictly at the end offset
-    if(annotsByStartNode == null) indexByStartOffset();
+    if(annotsByStartNode == null) indexByOffsets();
     List<Annotation> annotationsToAdd = null;
     Iterator<Annotation> annotsIter;
     Node currentNode;
@@ -673,7 +673,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    */
   @Override
   public AnnotationSet get(String neededType, Long startOffset, Long endOffset) {
-    if(annotsByStartNode == null) indexByStartOffset();
+    if(annotsByStartNode == null) indexByOffsets();
     List<Annotation> annotationsToAdd = new ArrayList<Annotation>();
     Iterator<Node> nodesIter;
     Iterator<Annotation> annotsIter;
@@ -747,7 +747,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
     //check the range
     if(endOffset < startOffset) return emptyAS();
     //ensure index
-    if(annotsByStartNode == null) indexByStartOffset();
+    if(annotsByStartNode == null) indexByOffsets();
     //if the requested range is longer than the longest annotation in this set, 
     //then there can be no annotations covering the range
     // so we return an empty set.
@@ -811,7 +811,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
     //check the range
     if(endOffset < startOffset) return emptyAS();
     //ensure index
-    if(annotsByStartNode == null) indexByStartOffset();
+    if(annotsByStartNode == null) indexByOffsets();
     List<Annotation> annotationsToAdd = null;
     Iterator<Node> nodesIter;
     Node currentNode;
@@ -843,7 +843,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
   /** Get the node with the smallest offset */
   @Override
   public Node firstNode() {
-    indexByStartOffset();
+    indexByOffsets();
     if(nodesByOffset.isEmpty())
       return null;
     else return nodesByOffset.get(nodesByOffset.firstKey());
@@ -852,7 +852,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
   /** Get the node with the largest offset */
   @Override
   public Node lastNode() {
-    indexByStartOffset();
+    indexByOffsets();
     if(nodesByOffset.isEmpty())
       return null;
     else return nodesByOffset.get(nodesByOffset.lastKey());
@@ -864,7 +864,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    */
   @Override
   public Node nextNode(Node node) {
-    indexByStartOffset();
+    indexByOffsets();
     return nodesByOffset.getNextOf(node.getOffset().longValue() + 1);
   }
 
@@ -986,7 +986,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
     // the set has to be indexed by position in order to add, as we need
     // to find out if nodes need creating or if they exist already
     if(nodesByOffset == null) {
-      indexByStartOffset();
+      indexByOffsets();
     }
     // find existing nodes if appropriate nodes don't already exist,
     // create them
@@ -1046,7 +1046,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
   } // indexByType()
 
   /** Construct the positional indices for annotation start */
-  protected void indexByStartOffset() {
+  protected void indexByOffsets() {
     if(annotsByStartNode != null) return;
     if(nodesByOffset == null) nodesByOffset = new RBTreeMap<Long,Node>();
     annotsByStartNode = new HashMap<>(annotsById.size());
@@ -1054,7 +1054,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
     Iterator<Annotation> annotIter = annotsById.values().iterator();
     while(annotIter.hasNext())
       addToOffsetIndex(annotIter.next());
-  } // indexByStartOffset()
+  } // indexByOffsets()
 
   /**
    * Add an annotation to the type index. Does nothing if the index doesn't
@@ -1176,7 +1176,7 @@ public class AnnotationSetImpl extends AbstractSet<Annotation> implements
    */
   public void edit(Long start, Long end, DocumentContent replacement) {
     // make sure we have the indices computed
-    indexByStartOffset();
+    indexByOffsets();
     if(end.compareTo(start) > 0) {
       // get the nodes that need to be processed (the nodes internal to
       // the
