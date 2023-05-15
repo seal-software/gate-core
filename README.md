@@ -8,6 +8,8 @@ See the [user guide](http://gate.ac.uk/userguide) for more details
 
 ## Building and Running from the Source Code
 
+Commit test
+
 Requirements:
 * Java 8 or above
 * Maven 3.6.0 or above
